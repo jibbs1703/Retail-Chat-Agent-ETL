@@ -1,7 +1,7 @@
 """Retail Product Agent Backend Healthcheck Routes Module."""
 
 from app.v1.models.healthcheck import HealthCheckResponse
-from app.v1.services.healthcheck import get_qdrant_collections, get_redis_keys
+from app.v1.services.healthcheck import get_postgres_tables, get_qdrant_collections, get_redis_keys
 from fastapi import APIRouter
 
 router = APIRouter()
@@ -27,5 +27,6 @@ async def health_check() -> HealthCheckResponse:
         "backend_status": "Running",
         "qdrant_collections": await get_qdrant_collections(),
         "redis_keys": await get_redis_keys(),
+        "postgres_tables": await get_postgres_tables(),
     }
     return HealthCheckResponse(**health_check)

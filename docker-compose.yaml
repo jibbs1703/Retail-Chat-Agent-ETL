@@ -11,11 +11,13 @@ services:
     volumes:
       - ./backend/app:/app/app
     env_file:
-      - ./backend/.env
+      - .env
     depends_on:
       redis:
         condition: service_started
       qdrant:
+        condition: service_started
+      postgres:
         condition: service_started
     networks:
       - retail-agent-network
@@ -58,6 +60,25 @@ services:
       timeout: 10s
       retries: 3
       start_period: 5s
+
+  postgres:
+    build:
+      context: ./postgres
+      dockerfile: Dockerfile
+    container_name: postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres/data:/var/lib/postgresql/data
+    networks:
+      - retail-agent-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U retailadmin -d retail_catalog && psql -U retailadmin -d retail_catalog -c 'SELECT 1'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
 networks:
   retail-agent-network:

@@ -1,9 +1,11 @@
 """Retail Product Agent Backend Healthcheck Services Module."""
 
+import psycopg2
 import redis.asyncio as redis
 from app.v1.core.configurations import get_settings
 from fastapi import APIRouter
 from httpx import AsyncClient, HTTPError, TimeoutException
+from psycopg2 import sql
 
 router = APIRouter()
 settings = get_settings()
@@ -47,3 +49,38 @@ async def get_qdrant_collections() -> list[str] | list[dict]:
     except (HTTPError, TimeoutException):
         qdrant_collections = [{"error": "Could not connect to Qdrant"}]
     return qdrant_collections
+
+
+async def get_postgres_tables() -> list[str] | list[dict]:
+    """Retrieve PostgreSQL table names from the retail_catalog database."""
+    postgres_tables = []
+
+    if not settings.database_url:
+        return [{"error": "PostgreSQL URL not configured"}]
+
+    try:
+        conn = psycopg2.connect(settings.database_url)
+        cursor = conn.cursor()
+
+        cursor.execute(
+            sql.SQL(
+                """
+                SELECT tablename FROM pg_tables 
+                WHERE schemaname = %s
+                """
+            ),
+            ("public",),
+        )
+
+        tables = cursor.fetchall()
+        postgres_tables = [table[0] for table in tables]
+
+        cursor.close()
+        conn.close()
+
+        return postgres_tables if postgres_tables else [{"info": "No tables in public schema"}]
+
+    except psycopg2.OperationalError:
+        return [{"error": "Could not connect to PostgreSQL"}]
+    except (HTTPError, ConnectionError) as e:
+        return [{"error": f"PostgreSQL error: {str(e)}"}]

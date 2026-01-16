@@ -24,6 +24,7 @@ class ApplicationSettings(BaseSettings):
     application_version: str = "1.0.0"
     qdrant_url: str = os.getenv("qdrant_url")
     redis_url: str = os.getenv("redis_url")
+    database_url: str = os.getenv("database_url")
     supported_image_formats: set[str] = {"JPEG", "PNG", "GIF", "WEBP", "BMP"}
     supported_image_extensions: set[str] = {".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp"}
     max_image_size: int = 4096
