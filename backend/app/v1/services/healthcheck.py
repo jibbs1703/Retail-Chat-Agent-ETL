@@ -1,10 +1,9 @@
 """Retail Product Agent Backend Healthcheck Services Module."""
 
 import redis.asyncio as redis
+from app.v1.core.configurations import get_settings
 from fastapi import APIRouter
 from httpx import AsyncClient, HTTPError, TimeoutException
-
-from app.v1.core.configurations import get_settings
 
 router = APIRouter()
 settings = get_settings()

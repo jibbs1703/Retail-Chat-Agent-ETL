@@ -11,7 +11,7 @@ services:
     volumes:
       - ./backend/app:/app/app
     env_file:
-      - ./backend/app/v1/core/.env
+      - ./backend/.env
     depends_on:
       redis:
         condition: service_started

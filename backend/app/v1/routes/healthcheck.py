@@ -1,9 +1,8 @@
 """Retail Product Agent Backend Healthcheck Routes Module."""
 
-from fastapi import APIRouter
-
 from app.v1.models.healthcheck import HealthCheckResponse
 from app.v1.services.healthcheck import get_qdrant_collections, get_redis_keys
+from fastapi import APIRouter
 
 router = APIRouter()
 

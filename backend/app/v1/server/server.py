@@ -1,10 +1,9 @@
 """Retail Product Agent Backend Server Module."""
 
-from fastapi import FastAPI
-from starlette.middleware.cors import CORSMiddleware
-
 from app.v1.core.configurations import get_settings
 from app.v1.routes import api_router
+from fastapi import FastAPI
+from starlette.middleware.cors import CORSMiddleware
 
 
 def run_application() -> FastAPI:
