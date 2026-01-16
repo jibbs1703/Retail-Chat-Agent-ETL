@@ -19,6 +19,9 @@ start-backend:
 	docker build -t retail-chat-agent:latest .
 	docker run -p 8000:8000 retail-chat-agent:latest
 
+restart-app:
+	docker-compose down && docker-compose up -d
+
 start-app:
 	docker compose down -v || true
 	docker compose up --build

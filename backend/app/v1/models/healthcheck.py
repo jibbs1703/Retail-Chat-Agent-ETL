@@ -8,3 +8,4 @@ class HealthCheckResponse(BaseModel):
 
     backend_status: str
     qdrant_collections: list[str | dict[str, str]]
+    redis_keys: list[str | dict[str, str]]
