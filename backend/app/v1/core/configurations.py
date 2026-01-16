@@ -24,7 +24,11 @@ class ApplicationSettings(BaseSettings):
     application_version: str = "1.0.0"
     qdrant_url: str = os.getenv("qdrant_url")
     redis_url: str = os.getenv("redis_url")
-    database_url: str = os.getenv("database_url")
+    postgres_database: str = os.getenv("postgres_database")
+    postgres_host: str = os.getenv("postgres_host")
+    postgres_password: str = os.getenv("postgres_password")
+    postgres_port: int = int(os.getenv("postgres_port", 5432))
+    postgres_user: str = os.getenv("postgres_user")
     supported_image_formats: set[str] = {"JPEG", "PNG", "GIF", "WEBP", "BMP"}
     supported_image_extensions: set[str] = {".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp"}
     max_image_size: int = 4096

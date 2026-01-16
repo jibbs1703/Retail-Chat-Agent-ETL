@@ -135,7 +135,10 @@ def validate_image(image: Image.Image, max_size: int = None) -> None:
         )
 
 
-def resize_image(image: Image.Image, max_size: int = None) -> Image.Image:
+def resize_image(
+    image: Image.Image,
+    max_size: int = settings.max_image_size
+    ) -> Image.Image:
     """Resize image if it exceeds max size while maintaining aspect ratio.
 
     Args:
@@ -145,9 +148,6 @@ def resize_image(image: Image.Image, max_size: int = None) -> Image.Image:
     Returns:
         Image.Image: Resized image (or original if within size).
     """
-    if max_size is None:
-        max_size = settings.max_image_size
-
     width, height = image.size
 
     if width <= max_size and height <= max_size:
@@ -164,7 +164,10 @@ def resize_image(image: Image.Image, max_size: int = None) -> Image.Image:
     return resized
 
 
-def process_image(data: bytes | BinaryIO, max_size: int = None) -> Image.Image:
+def process_image(
+    data: bytes | BinaryIO,
+    max_size: int = settings.max_image_size
+    ) -> Image.Image:
     """Complete image processing pipeline: decode, validate, and resize.
 
     This is the main entry point for image processing throughout the application.
@@ -180,9 +183,6 @@ def process_image(data: bytes | BinaryIO, max_size: int = None) -> Image.Image:
     Raises:
         ImageValidationError: If image processing fails at any step.
     """
-    if max_size is None:
-        max_size = settings.max_image_size
-
     try:
         image = decode_image(data)
         validate_image(image, max_size)

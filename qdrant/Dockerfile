@@ -1,5 +1,5 @@
 FROM qdrant/qdrant
 
-EXPOSE 6333 6334
+EXPOSE 6333
 
 VOLUME [ "/qdrant/storage" ]
