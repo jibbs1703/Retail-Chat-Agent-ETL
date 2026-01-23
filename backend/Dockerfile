@@ -45,4 +45,4 @@ EXPOSE 8000
 
 USER appuser
 
-CMD ["uvicorn", "app.v1.server.server:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app.v1.server.server:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

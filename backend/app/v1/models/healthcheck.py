@@ -3,10 +3,15 @@
 from pydantic import BaseModel
 
 
-class HealthCheckResponse(BaseModel):
-    """Health check response schema."""
+class ServiceStatus(BaseModel):
+    status: str
+    latency_ms: float | None = None
+    message: str | None = None
 
-    backend_status: str
-    qdrant_collections: list[str | dict[str, str]]
-    redis_keys: list[str | dict[str, str]]
-    postgres_tables: list[str | dict[str, str]]
+
+class HealthCheckResponse(BaseModel):
+    status: str
+    version: str
+    postgres: ServiceStatus
+    redis: ServiceStatus
+    qdrant: ServiceStatus
