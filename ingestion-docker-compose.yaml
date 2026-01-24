@@ -16,13 +16,13 @@ x-airflow-common: &airflow-common
     AIRFLOW__CORE__MAX_ACTIVE_RUNS_PER_DAG: 16
     AIRFLOW__CORE__DAG_FILE_PROCESSOR_TIMEOUT: 600
     AIRFLOW__CORE__DAGBAG_IMPORT_TIMEOUT: 120
-    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${AIRFLOW_POSTGRES_USER:-airflow}:${AIRFLOW_POSTGRES_PASSWORD:-airflow}@airflow-postgres:5432/airflow
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${AIRFLOW_POSTGRES_USER}:${AIRFLOW_POSTGRES_PASSWORD}@airflow-postgres:5432/${AIRFLOW_POSTGRES_DB}
     AIRFLOW__DATABASE__SQL_ALCHEMY_POOL_SIZE: 5
     AIRFLOW__DATABASE__SQL_ALCHEMY_MAX_OVERFLOW: 10
     AIRFLOW__DATABASE__SQL_ALCHEMY_POOL_RECYCLE: 1800
     AIRFLOW__DATABASE__SQL_ALCHEMY_POOL_PRE_PING: 'true'
-    AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://${AIRFLOW_POSTGRES_USER:-airflow}:${AIRFLOW_POSTGRES_PASSWORD:-airflow}@airflow-postgres:5432/airflow
-    AIRFLOW__CELERY__BROKER_URL: redis://:${AIRFLOW_REDIS_PASSWORD:-airflow}@airflow-redis:6379/0
+    AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://${AIRFLOW_POSTGRES_USER}:${AIRFLOW_POSTGRES_PASSWORD}@airflow-postgres:5432/${AIRFLOW_POSTGRES_DB}
+    AIRFLOW__CELERY__BROKER_URL: redis://:${AIRFLOW_REDIS_PASSWORD}@airflow-redis:6379/0
     AIRFLOW__CELERY__WORKER_CONCURRENCY: 8
     AIRFLOW__CELERY__WORKER_PREFETCH_MULTIPLIER: 1
     AIRFLOW__CELERY__TASK_ACKS_LATE: 'true'
@@ -72,17 +72,19 @@ services:
   airflow-postgres:
     image: postgres:16-alpine
     container_name: airflow-postgres
+    env_file:
+      - .env
     environment:
-      POSTGRES_USER: ${AIRFLOW_POSTGRES_USER:-airflow}
-      POSTGRES_PASSWORD: ${AIRFLOW_POSTGRES_PASSWORD:-airflow}
-      POSTGRES_DB: ${AIRFLOW_POSTGRES_DB:-airflow}
+      POSTGRES_USER: ${AIRFLOW_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${AIRFLOW_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${AIRFLOW_POSTGRES_DB}
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
       - airflow-postgres-data:/var/lib/postgresql/data
     ports:
       - "${AIRFLOW_POSTGRES_PORT:-5433}:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${AIRFLOW_POSTGRES_USER:-airflow} -d ${AIRFLOW_POSTGRES_DB:-airflow}"]
+      test: ["CMD-SHELL", "pg_isready -U ${AIRFLOW_POSTGRES_USER} -d ${AIRFLOW_POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -102,9 +104,11 @@ services:
   airflow-redis:
     image: redis:7-alpine
     container_name: airflow-redis
+    env_file:
+      - .env
     command: >
       redis-server 
-      --requirepass ${AIRFLOW_REDIS_PASSWORD:-airflow}
+      --requirepass ${AIRFLOW_REDIS_PASSWORD}
       --maxmemory 512mb
       --maxmemory-policy allkeys-lru
       --appendonly yes
@@ -114,7 +118,7 @@ services:
     volumes:
       - airflow-redis-data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${AIRFLOW_REDIS_PASSWORD:-airflow}", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${AIRFLOW_REDIS_PASSWORD}", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -149,16 +153,16 @@ services:
         airflow fab-db migrate
 
         airflow users create \
-          --username "$${AIRFLOW_ADMIN_USER:-airflow}" \
-          --password "$${AIRFLOW_ADMIN_PASSWORD:-airflow}" \
+          --username "$${AIRFLOW_ADMIN_USER}" \
+          --password "$${AIRFLOW_ADMIN_PASSWORD}" \
           --firstname FirstName \
           --lastname LastName \
           --email firstname.lastname@example.com \
           --role Admin || echo "User already exists, skipping..."
     environment:
       <<: *airflow-common-env
-      AIRFLOW_ADMIN_USER: ${AIRFLOW_ADMIN_USER:-airflow}
-      AIRFLOW_ADMIN_PASSWORD: ${AIRFLOW_ADMIN_PASSWORD:-airflow}
+      AIRFLOW_ADMIN_USER: ${AIRFLOW_ADMIN_USER}
+      AIRFLOW_ADMIN_PASSWORD: ${AIRFLOW_ADMIN_PASSWORD}
     user: "0:0"
     restart: "no"
     depends_on:
@@ -176,8 +180,8 @@ services:
     environment:
       <<: *airflow-common-env
       _AIRFLOW_WWW_USER_CREATE: 'true'
-      _AIRFLOW_WWW_USER_USERNAME: ${AIRFLOW_ADMIN_USER:-airflow}
-      _AIRFLOW_WWW_USER_PASSWORD: ${AIRFLOW_ADMIN_PASSWORD:-airflow}
+      _AIRFLOW_WWW_USER_USERNAME: ${AIRFLOW_ADMIN_USER}
+      _AIRFLOW_WWW_USER_PASSWORD: ${AIRFLOW_ADMIN_PASSWORD}
     healthcheck:
       test: ["CMD-SHELL", "curl --fail http://localhost:8080/api/v2/version || exit 1"]
       interval: 30s
@@ -302,7 +306,7 @@ services:
       - "${FLOWER_PORT:-5555}:5555"
     environment:
       <<: *airflow-common-env
-      FLOWER_BASIC_AUTH: ${FLOWER_BASIC_AUTH:-airflow:airflow}
+      FLOWER_BASIC_AUTH: ${FLOWER_BASIC_AUTH}
       FLOWER_PORT: 5555
     healthcheck:
       test: ["CMD-SHELL", "curl --fail http://localhost:5555/healthcheck || exit 1"]
