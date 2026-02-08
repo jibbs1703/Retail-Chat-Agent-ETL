@@ -11,7 +11,7 @@ from bs4 import BeautifulSoup
 from tqdm.asyncio import tqdm
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
-logger = logging.getLogger("fashionnova_scraper")
+logger = logging.getLogger("scrape.py")
 
 
 class WebScraper:

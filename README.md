@@ -1,6 +1,6 @@
 # Product Ingestion Pipeline
 
-This directory contains the Airflow DAGs and ingestion logic for scraping products from e-commerce websites and loading them into PostgreSQL and Qdrant.
+This repository contains the Airflow DAGs and ingestion logic for scraping products from e-commerce websites and loading them into PostgreSQL and Qdrant.
 
 ## Overview
 
@@ -13,13 +13,6 @@ The ingestion pipeline performs the following steps:
 5. **Embedding Generation**: Creates text and image embeddings using CLIP
 6. **Qdrant Upsert**: Stores embeddings in Qdrant vector database
 7. **Tracking**: Records embedding metadata in PostgreSQL
-
-## Files
-
-- `ingest.py`: Core ingestion logic with scraping, parsing, and database operations
-- `dags/product_ingestion_dag.py`: Airflow DAG that orchestrates the ingestion pipeline
-- `dags/database_health_check_dag.py`: DAG to verify database connectivity
-- `dags/sample_dag.py`: Example DAG for testing
 
 ## Setup
 

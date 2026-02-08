@@ -52,12 +52,11 @@ x-airflow-common: &airflow-common
     PYTHONPATH: /opt/airflow/dags:/opt/airflow/plugins:/opt/airflow
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-pydantic pydantic-settings psycopg2-binary requests beautifulsoup4 boto3 botocore aiohttp qdrant-client Pillow torch transformers tqdm python-dotenv}
   volumes:
-    - ${AIRFLOW_PROJ_DIR:-.}/ingestion/dags:/opt/airflow/dags
-    - ${AIRFLOW_PROJ_DIR:-.}/ingestion/logs:/opt/airflow/logs
-    - ${AIRFLOW_PROJ_DIR:-.}/ingestion/plugins:/opt/airflow/plugins
-    - ${AIRFLOW_PROJ_DIR:-.}/ingestion/config:/opt/airflow/config
-    - ${AIRFLOW_PROJ_DIR:-.}/ingestion:/opt/airflow/ingestion
-    - ${AIRFLOW_PROJ_DIR:-.}/backend:/opt/airflow/backend
+    - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
+    - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
+    - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
+    - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
+    - ${AIRFLOW_PROJ_DIR:-.}/queries:/opt/airflow/queries
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on: &airflow-common-depends-on
     airflow-redis:

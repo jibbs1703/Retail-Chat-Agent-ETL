@@ -5,8 +5,10 @@ from logging.handlers import RotatingFileHandler
 
 
 def setup_logger(
-    name: str = __name__, level: int = logging.INFO, log_file: str | None = None
-) -> logging.Logger:
+    name: str = __name__,
+    level: int = logging.INFO,
+    log_file: str | None = None
+    ) -> logging.Logger:
     """
     Configures and returns a logger instance.
 
@@ -38,12 +40,3 @@ def setup_logger(
             logger.addHandler(file_handler)
 
     return logger
-
-
-if __name__ == "__main__":
-    test_logger = setup_logger("test_logger", logging.DEBUG)
-    test_logger.debug("This is a debug message.")
-    test_logger.info("This is an info message.")
-    test_logger.warning("This is a warning message.")
-    test_logger.error("This is an error message.")
-    test_logger.critical("This is a critical message.")

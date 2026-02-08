@@ -1,4 +1,4 @@
-.PHONY: add commit push secret-key fernet-key app-up app-down app-clean lint clear clear-ruff clear-pytest clear-pycache  ingestion-init  ingestion-up  ingestion-up-flower  ingestion-down  ingestion-restart  ingestion-clean  ingestion-reset  ingestion-health  ingestion-scale-workers
+.PHONY: add commit push secret-key fernet-key lint clear clear-ruff clear-pytest clear-pycache  ingestion-init  ingestion-up  ingestion-up-flower  ingestion-down  ingestion-restart  ingestion-clean  ingestion-reset  ingestion-health  ingestion-scale-workers
 
 add:
 	git add .
@@ -8,18 +8,6 @@ commit: add
 
 push: commit
 	git push
-
-app-up:
-	docker compose -f application-docker-compose.yaml down -v || true
-	docker compose -f application-docker-compose.yaml up --build
-
-app-down:
-	docker compose -f application-docker-compose.yaml down -v || true
-
-app-clean: app-down
-	docker system prune -af --volumes
-	docker image prune -af
-	docker volume prune -af
 
 lint:
 	python3 -m ruff format .
