@@ -32,22 +32,22 @@ fernet-key:
 	python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
 
  ingestion-init:
-	mkdir -p ./ingestion/dags ./ingestion/logs ./ingestion/plugins ./ingestion/config
-	docker compose -f  ingestion-docker-compose.yaml up  airflow-init
+	mkdir -p ./dags ./logs ./plugins ./config ./queries ./scripts ./utilities ./ingestion/logs
+	docker compose -f  docker-compose.yaml up  airflow-init
 
  ingestion-up:  ingestion-init
-	docker compose -f  ingestion-docker-compose.yaml up -d
+	docker compose -f  docker-compose.yaml up -d
 
  ingestion-up-flower:  ingestion-init
-	docker compose -f  ingestion-docker-compose.yaml --profile flower up -d
+	docker compose -f  docker-compose.yaml --profile flower up -d
 
  ingestion-down:
-	docker compose -f  ingestion-docker-compose.yaml down
+	docker compose -f  docker-compose.yaml down
 
  ingestion-restart:  ingestion-down  ingestion-up
 
  ingestion-clean:
-	docker compose -f  ingestion-docker-compose.yaml down -v --remove-orphans
+	docker compose -f  docker-compose.yaml down -v --remove-orphans
 	rm -rf ./ingestion/logs/*
 	docker system prune -af --volumes
 	docker image prune -af
@@ -56,8 +56,8 @@ fernet-key:
  ingestion-reset:  ingestion-clean  ingestion-init  ingestion-up
 
  ingestion-health:
-	docker compose -f  ingestion-docker-compose.yaml ps
-	docker compose -f  ingestion-docker-compose.yaml ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
+	docker compose -f  docker-compose.yaml ps
+	docker compose -f  docker-compose.yaml ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
 
  ingestion-scale-workers:
-	docker compose -f  ingestion-docker-compose.yaml up -d --scale  ingestion-worker=$(n)
+	docker compose -f  docker-compose.yaml up -d --scale  ingestion-worker=$(n)

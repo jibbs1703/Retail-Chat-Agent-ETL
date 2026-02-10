@@ -93,23 +93,6 @@ def list_postgres_databases() -> list:
     return databases
 
 
-def run_sql_scripts(database_name: str, file_path: str) -> None:
-    """Run SQL commands on the given PostgreSQL connection."""
-    connection = get_postgres_connection(dbname=database_name)
-    if connection is None:
-        return
-    try:
-        cursor = connection.cursor()
-        sql_commands = load_sql_file(file_path)
-        cursor.execute(sql_commands)
-        connection.commit()
-        logger.info("Successfully executed SQL commands from %s", file_path)
-        cursor.close()
-    except psycopg2.Error as e:
-        logger.error("Error executing SQL commands: %s", e)
-        connection.rollback()
-
-
 def create_image_from_url(image_url: str) -> Image.Image:
     """
     Create a PIL Image from a given image URL.
