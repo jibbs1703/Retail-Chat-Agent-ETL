@@ -5,6 +5,7 @@ on:
     branches:
       - "main"
       - "feature/**"
+  
   pull_request:
     branches:
       - "main"
@@ -15,8 +16,15 @@ jobs:
     uses: ./.github/workflows/test-and-lint.yaml
     secrets: inherit
 
-  deploy:
-    name: Deploy to Remote Server
+  deploy-staging:
+    name: Deploy to Staging Server
     needs: tests
-    uses: ./.github/workflows/deploy-to-server.yaml
+    uses: ./.github/workflows/deploy-to-staging.yaml
+    secrets: inherit
+  
+  deploy-production:
+    name: Deploy to Production Server
+    needs: deploy-staging
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/deploy-to-production.yaml
     secrets: inherit

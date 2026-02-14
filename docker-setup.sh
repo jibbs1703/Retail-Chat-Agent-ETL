@@ -12,12 +12,14 @@ else
 fi
 
 if systemctl is-active --quiet docker; then
+    :
 else
     sudo systemctl start docker
     sudo systemctl enable docker
 fi
 
 if id -nG "$USER" | grep -qw "docker"; then
+    :
 else
     sudo usermod -aG docker "$USER"
 fi

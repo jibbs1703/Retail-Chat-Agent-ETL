@@ -1,0 +1,38 @@
+name: Deploy to Production Server
+
+on:
+  workflow_call
+
+jobs:
+  deploy-to-server:
+    name: Deploy Codebase to Production Server
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            set -e
+            echo "Connecting to production server and deploying codebase..."
+
+            if [ -d "Retail-Chat-Agent-ETL" ]; then
+              cd Retail-Chat-Agent-ETL
+              git fetch origin
+              git reset --hard origin/feature/deploy-ingestion
+            else
+              git clone -b feature/deploy-ingestion https://github.com/jibbs1703/Retail-Chat-Agent.git Retail-Chat-Agent-ETL
+              cd Retail-Chat-Agent-ETL
+            fi
+            
+            chmod +x docker-setup.sh
+            bash docker-setup.sh
+
+            echo "Deployment to production server completed successfully!"
