@@ -1,6 +1,6 @@
 """Simple Test DAG for Airflow Setup Verification."""
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from airflow.sdk import dag, task
 
@@ -8,10 +8,11 @@ from airflow.sdk import dag, task
 @dag(
     dag_id="sample_hello_etl_dag",
     description="Simple test DAG to verify Airflow Setup",
-    schedule="0 * * * *",  # Runs every hour
+    schedule="0 * * * *",
     start_date=datetime(2026, 1, 1),
     catchup=False,
-    tags=["managed"],
+    tags=["Sample", "Test", "ETL", "Sample"],
+    dagrun_timeout=timedelta(minutes=10),
 )
 def hello_etl():
     """Simple ETL DAG using TaskFlow API."""

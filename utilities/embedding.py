@@ -98,9 +98,16 @@ def embed_query(query: str | Image.Image) -> np.ndarray:
     else:
         raise ValueError("Query must be either a string or an image")
 
+    if hasattr(emb, "pooler_output"):
+        emb = emb.pooler_output
+    
     if hasattr(emb, "norm"):
         emb = emb / emb.norm(dim=-1, keepdim=True)
+    
     else:
         logger.warning("Model output does not have 'norm' attribute. Normalization skipped.")
 
-    return emb.cpu().numpy()[0].astype("float32")
+    if isinstance(emb, torch.Tensor):
+        return emb.cpu().numpy().flatten().astype("float32")
+    else:
+        return np.array(emb).flatten().astype("float32")

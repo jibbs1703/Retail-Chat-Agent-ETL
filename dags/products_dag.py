@@ -1,27 +1,32 @@
 """Simple Test DAG for Airflow Setup Verification."""
 
-from datetime import datetime
+import asyncio
+from datetime import datetime, timedelta
 
 import requests
 from airflow.sdk import dag, task
 
-from utilities.database import get_postgres_connection
+from config.settings import get_settings
+from utilities.database import get_postgres_connection, run_sql_scripts
 from utilities.logger import setup_logger
 from utilities.s3 import get_s3_client
+from utilities.scrape import ingest_products_async
 from utilities.vectorstore import get_qdrant_client
 
-logger = setup_logger("jackets_dag.py")
+logger = setup_logger("products_dag.py")
+settings = get_settings()
 
 
 @dag(
-    dag_id="jackets_products_dag",
-    description="Jackets Product Ingestion DAG",
-    schedule="0 * * * *",  # Runs every hour
+    dag_id="products_dag",
+    description="Product Ingestion DAG",
+    schedule="0 * * * *",
     start_date=datetime(2026, 1, 1),
     catchup=False,
-    tags=["Jackets", "ETL","Products"],
+    tags=["Products", "ETL", "Ingestion"],
+    dagrun_timeout=timedelta(minutes=180)
 )
-def jackets_products_etl():
+def products_etl(): # noqa: C901
     """Simple ETL DAG using TaskFlow API."""
 
     @task
@@ -69,10 +74,42 @@ def jackets_products_etl():
         except requests.RequestException as e:
             logger.error("Error during AWS S3 connection check: %s", e)
             return f"AWS S3 Connection Check Error: {e}"
+        
+    @task
+    def create_product_table():
+        """Create the products table in the relational database if it doesn't exist."""
+        run_sql_scripts(settings.postgres_database, "/opt/airflow/queries/create_products.sql")
+
+    @task
+    def create_embeddings_table():
+        """Create the embeddings table in the relational database if it doesn't exist."""
+        pass
+        run_sql_scripts(settings.postgres_database, "/opt/airflow/queries/create_embeddings.sql")
+
+    @task
+    def ingest_jackets():
+        """Ingest jackets from scraper into vector and relational databases."""
+        asyncio.run(ingest_products_async(category="jackets"))
+
+    @task
+    def ingest_shoes():
+        """Ingest shoes from scraper into vector and relational databases."""
+        asyncio.run(ingest_products_async(category="shoes"))
     
-    relational_database_check()
-    vector_database_check()
-    aws_s3_check()
+    check_database = relational_database_check()
+    check_vectorstore = vector_database_check()
+    check_aws_s3 = aws_s3_check()
+
+    product_table = create_product_table()
+    embedding_table = create_embeddings_table()
+    
+    jackets = ingest_jackets()
+    shoes = ingest_shoes()
+
+    product_table.set_upstream([check_database, check_vectorstore, check_aws_s3])
+    embedding_table.set_upstream([check_database, check_vectorstore, check_aws_s3])
+    jackets.set_upstream([product_table, embedding_table])
+    shoes.set_upstream([product_table, embedding_table])
 
 
-jackets_products_etl()
+products_etl()
