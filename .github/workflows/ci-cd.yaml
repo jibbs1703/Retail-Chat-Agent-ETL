@@ -1,0 +1,16 @@
+name: Retail Chat Agent ETL CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - "main"
+      - "feature/**"
+  pull_request:
+    branches:
+      - "main"
+
+jobs:
+  tests:
+    name: Run Test
+    uses: ./.github/workflows/test-and-lint.yaml
+    secrets: inherit

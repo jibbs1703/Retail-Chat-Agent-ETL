@@ -110,7 +110,7 @@ def products_etl(): # noqa: C901
     product_table.set_upstream([check_database, check_vectorstore, check_aws_s3])
     embedding_table.set_upstream([check_database, check_vectorstore, check_aws_s3])
     jackets.set_upstream([product_table, embedding_table])
-    shoes.set_upstream([product_table, embedding_table])
+    shoes.set_upstream(jackets)
 
 
 products_etl()
