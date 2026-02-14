@@ -187,7 +187,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 60s
+      start_period: 600s
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
@@ -210,7 +210,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 60s
+      start_period: 600s
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
@@ -233,7 +233,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 60s
+      start_period: 600s
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
@@ -256,7 +256,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 60s
+      start_period: 600s
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
@@ -282,7 +282,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 60s
+      start_period: 600s
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
@@ -313,7 +313,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 60s
+      start_period: 600s
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
