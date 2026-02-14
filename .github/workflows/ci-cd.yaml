@@ -1,0 +1,32 @@
+name: Retail Chat Agent ETL CI/CD Pipeline
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  # push:
+  #   branches:
+  #     - "main"
+  #     - "feature/**"
+  
+  # pull_request:
+  #   branches:
+  #     - "main"
+
+jobs:
+  tests:
+    name: Run Tests and Linting
+    uses: ./.github/workflows/test-and-lint.yaml
+    secrets: inherit
+
+  deploy-staging:
+    name: Deploy to Staging Server
+    needs: tests
+    uses: ./.github/workflows/deploy-to-staging.yaml
+    secrets: inherit
+  
+  deploy-production:
+    name: Deploy to Production Server
+    needs: deploy-staging
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/deploy-to-production.yaml
+    secrets: inherit

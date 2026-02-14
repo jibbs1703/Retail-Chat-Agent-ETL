@@ -1,0 +1,35 @@
+name: Deploy to Staging Server
+
+on:
+  workflow_call
+
+jobs:
+  deploy-to-server:
+    name: Deploy Codebase to Staging Server
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            set -e
+            echo "Connecting to staging server and deploying codebase..."
+
+            sudo rm -rf Retail-Chat-Agent-ETL
+            git clone -b feature/deploy-ingestion https://github.com/jibbs1703/Retail-Chat-Agent.git Retail-Chat-Agent-ETL
+            cd Retail-Chat-Agent-ETL
+            
+            chmod +x docker-setup.sh
+            bash docker-setup.sh
+
+            make ingestion-up
+
+            echo "Deployment to staging server completed successfully!"

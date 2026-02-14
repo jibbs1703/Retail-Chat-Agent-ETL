@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 import requests
 from airflow.sdk import dag, task
 
+import queries
 from config.settings import get_settings
 from utilities.database import get_postgres_connection, run_sql_scripts
 from utilities.logger import setup_logger
@@ -24,7 +25,8 @@ settings = get_settings()
     start_date=datetime(2026, 1, 1),
     catchup=False,
     tags=["Products", "ETL", "Ingestion"],
-    dagrun_timeout=timedelta(minutes=180)
+    dagrun_timeout=timedelta(hours=3),
+    is_paused_upon_creation=False,
 )
 def products_etl(): # noqa: C901
     """Simple ETL DAG using TaskFlow API."""
@@ -78,20 +80,19 @@ def products_etl(): # noqa: C901
     @task
     def create_product_table():
         """Create the products table in the relational database if it doesn't exist."""
-        run_sql_scripts(settings.postgres_database, "/opt/airflow/queries/create_products.sql")
+        run_sql_scripts(settings.postgres_database, queries, "create_products.sql")
 
     @task
     def create_embeddings_table():
         """Create the embeddings table in the relational database if it doesn't exist."""
-        pass
-        run_sql_scripts(settings.postgres_database, "/opt/airflow/queries/create_embeddings.sql")
+        run_sql_scripts(settings.postgres_database, queries, "create_embeddings.sql")
 
-    @task
+    @task(execution_timeout=timedelta(hours=2.5))
     def ingest_jackets():
         """Ingest jackets from scraper into vector and relational databases."""
         asyncio.run(ingest_products_async(category="jackets"))
 
-    @task
+    @task(execution_timeout=timedelta(hours=2.5))
     def ingest_shoes():
         """Ingest shoes from scraper into vector and relational databases."""
         asyncio.run(ingest_products_async(category="shoes"))
@@ -109,7 +110,7 @@ def products_etl(): # noqa: C901
     product_table.set_upstream([check_database, check_vectorstore, check_aws_s3])
     embedding_table.set_upstream([check_database, check_vectorstore, check_aws_s3])
     jackets.set_upstream([product_table, embedding_table])
-    shoes.set_upstream([product_table, embedding_table])
+    shoes.set_upstream(jackets)
 
 
 products_etl()

@@ -13,6 +13,7 @@ from airflow.sdk import dag, task
     catchup=False,
     tags=["Sample", "Test", "ETL", "Sample"],
     dagrun_timeout=timedelta(minutes=10),
+    is_paused_upon_creation=False
 )
 def hello_etl():
     """Simple ETL DAG using TaskFlow API."""

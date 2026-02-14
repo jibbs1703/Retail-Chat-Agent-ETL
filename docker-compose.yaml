@@ -49,7 +49,7 @@ x-airflow-common: &airflow-common
     AIRFLOW__LOGGING__FAB_LOGGING_LEVEL: WARNING
     AIRFLOW__LOGGING__COLORED_CONSOLE_LOG: 'true'
     AIRFLOW__METRICS__STATSD_ON: 'false'
-    PYTHONPATH: /opt/airflow/dags:/opt/airflow/plugins:/opt/airflow:/opt/airflow/utilities :/opt/airflow/queries
+    PYTHONPATH: /opt/airflow/dags:/opt/airflow/plugins:/opt/airflow:/opt/airflow/utilities:/opt/airflow/queries:/opt/airflow
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-pydantic pydantic-settings psycopg2-binary requests beautifulsoup4 boto3 botocore aiohttp qdrant-client Pillow torch transformers tqdm python-dotenv}
   volumes:
     - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
@@ -187,7 +187,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 60s
+      start_period: 600s
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
@@ -210,7 +210,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 60s
+      start_period: 600s
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
@@ -233,7 +233,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 60s
+      start_period: 600s
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
@@ -256,7 +256,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 60s
+      start_period: 600s
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
@@ -282,7 +282,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 60s
+      start_period: 600s
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:
@@ -313,7 +313,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 60s
+      start_period: 600s
     depends_on:
       <<: *airflow-common-depends-on
       airflow-init:

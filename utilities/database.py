@@ -1,3 +1,7 @@
+"""Relational database utilities for PostgreSQL."""
+
+import importlib.resources
+import types
 from io import BytesIO
 
 import psycopg2
@@ -13,9 +17,11 @@ settings = get_settings()
 
 
 def load_sql_file(
-    file_path: str
+    module: types.ModuleType,
+    filename: str
     ) -> str:
     """Load SQL Query from a file."""
+    file_path = importlib.resources.files(module) / filename
     with open(file_path) as file:
         sql_commands = file.read()
     return sql_commands
@@ -23,14 +29,15 @@ def load_sql_file(
 
 def run_sql_scripts(
     database_name: str,
-    file_path: str) -> None:
+    module: types.ModuleType,
+    filename: str) -> None:
     """Run SQL commands on the given PostgreSQL connection."""
     connection = get_postgres_connection(dbname=database_name)
     if connection is None:
         return
     try:
         cursor = connection.cursor()
-        sql_commands = load_sql_file(file_path)
+        sql_commands = load_sql_file(module, filename)
         cursor.execute(sql_commands)
         connection.commit()
         cursor.close()

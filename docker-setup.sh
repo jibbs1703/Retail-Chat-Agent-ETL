@@ -1,0 +1,52 @@
+#!/bin/bash
+set -e
+
+if command -v docker &> /dev/null; then
+    docker_version=$(docker --version)
+    echo "Version: $docker_version"
+else
+    sudo apt-get update
+    sudo apt-get install -y docker.io
+    docker_version=$(docker --version)
+    echo " Version: $docker_version"
+fi
+
+if systemctl is-active --quiet docker; then
+    :
+else
+    sudo systemctl start docker
+    sudo systemctl enable docker
+fi
+
+if id -nG "$USER" | grep -qw "docker"; then
+    :
+else
+    sudo usermod -aG docker "$USER"
+fi
+
+if command -v make &> /dev/null; then
+    make_version=$(make --version | head -n 1)
+    echo "  $make_version"
+else
+    sudo apt-get install -y make
+    make_version=$(make --version | head -n 1)
+    echo "  $make_version"
+fi
+
+if command -v docker-compose &> /dev/null; then
+    compose_version=$(docker-compose --version)
+    echo "  Version: $compose_version"
+else    
+    if ! command -v curl &> /dev/null; then
+        sudo apt-get install -y curl
+    fi
+    sudo curl -L "https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/lib/docker/cli-plugins/docker-compose
+    sudo mkdir -p /usr/local/lib/docker/cli-plugins
+    sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+    
+    compose_version=$(docker compose version)
+    echo "  Version: $compose_version"
+fi
+
+echo "Running Docker test..."
+sudo docker run --rm hello-world
