@@ -1,0 +1,11 @@
+docs/
+scripts/
+tests/
+.git/
+.gitignore
+ruff.toml
+pre-commit-config.yaml
+.env.example
+.venv/
+__pycache__/
+.ruff_cache/

@@ -1,4 +1,4 @@
-.PHONY: add commit push start-qdrant start-backend start-app clean-app clear-pycache clear-ruff clear-pytest
+.PHONY: add commit push secret-key fernet-key lint clear clear-ruff clear-pytest clear-pycache  ingestion-init  ingestion-up  ingestion-up-flower  ingestion-down  ingestion-restart  ingestion-clean  ingestion-reset  ingestion-health  ingestion-scale-workers
 
 add:
 	git add .
@@ -8,29 +8,6 @@ commit: add
 
 push: commit
 	git push
-
-start-qdrant:
-	cd qdrant
-	docker build -t qdrant-custom:latest .
-	docker run -d --name custom-qdrant-container -p 6333:6333 -p 6334:6334 -v qdrant_data:/qdrant/storage qdrant-custom:latest
-
-start-backend:
-	cd backend
-	docker build -t retail-chat-agent:latest .
-	docker run -p 8000:8000 retail-chat-agent:latest
-
-restart-app:
-	docker-compose down && docker-compose up -d
-
-start-app:
-	docker compose down -v || true
-	docker compose up --build
-
-clean-app:
-	docker compose down -v || true
-	docker system prune -af --volumes
-	docker image prune -af
-	docker volume prune -af
 
 lint:
 	python3 -m ruff format .
@@ -47,3 +24,33 @@ clear-pytest: clear-ruff
 
 clear: clear-pytest
 	clear
+
+secret-key:
+	python -c "import secrets; print(secrets.token_hex(32))"
+
+fernet-key:
+	python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+
+ ingestion-init:
+	mkdir -p ./dags ./logs ./plugins ./config ./queries ./scripts ./utilities
+	docker compose -f  docker-compose.yaml up  airflow-init
+
+ ingestion-up:  ingestion-init
+	docker compose -f  docker-compose.yaml up -d
+
+ ingestion-up-flower:  ingestion-init
+	docker compose -f  docker-compose.yaml --profile flower up -d
+
+ ingestion-down:
+	docker compose -f  docker-compose.yaml down
+
+ ingestion-restart:  ingestion-down  ingestion-up
+
+ ingestion-clean:
+	docker compose -f  docker-compose.yaml down -v --remove-orphans
+	rm -rf ./ingestion/logs/*
+	docker system prune -af --volumes
+	docker image prune -af
+	docker volume prune -af
+
+ ingestion-reset:  ingestion-clean  ingestion-init  ingestion-up
