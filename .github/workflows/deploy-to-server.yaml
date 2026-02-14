@@ -21,7 +21,17 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             set -e
-            
-            echo "Add Deployment Commands Here"
+            echo "Connecting to server and deploying codebase..."
 
-            echo "Deployment complete!"
+            if [ -d "Retail-Chat-Agent-ETL" ]; then
+              cd Retail-Chat-Agent-ETL
+              git pull origin feature/deploy-ingestion
+            else
+              git clone -b feature/deploy-ingestion https://github.com/jibbs1703/Retail-Chat-Agent.git Retail-Chat-Agent-ETL
+              cd Retail-Chat-Agent-ETL
+            fi
+            
+            chmod +x docker-setup.sh
+            bash docker-setup.sh
+
+            echo "Deployment to server completed successfully!"

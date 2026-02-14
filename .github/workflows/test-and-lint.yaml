@@ -5,6 +5,7 @@ on:
 
 jobs:
   lint-test:
+    name: Lint Python Scripts and Run Tests
     
     runs-on: ubuntu-latest
 
