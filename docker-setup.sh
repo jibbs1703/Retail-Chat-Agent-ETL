@@ -40,9 +40,11 @@ else
     if ! command -v curl &> /dev/null; then
         sudo apt-get install -y curl
     fi
-    sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-    sudo chmod +x /usr/local/bin/docker-compose
-    compose_version=$(docker-compose --version)
+    sudo curl -L "https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/lib/docker/cli-plugins/docker-compose
+    sudo mkdir -p /usr/local/lib/docker/cli-plugins
+    sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+    
+    compose_version=$(docker compose version)
     echo "  Version: $compose_version"
 fi
 

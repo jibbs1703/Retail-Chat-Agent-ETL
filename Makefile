@@ -32,22 +32,22 @@ fernet-key:
 	python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
 
  ingestion-init:
-	docker compose docker-compose.yaml up  airflow-init
+	sudo docker compose -f docker-compose.yaml up airflow-init
 
  ingestion-up:  ingestion-init
-	docker compose docker-compose.yaml up -d
+	sudo docker compose -f docker-compose.yaml up -d
 
  ingestion-up-flower:  ingestion-init
-	docker compose docker-compose.yaml --profile flower up -d
+	sudo docker compose -f docker-compose.yaml --profile flower up -d
 
  ingestion-down:
-	docker compose docker-compose.yaml down
+	sudo docker compose -f docker-compose.yaml down
 
  ingestion-restart:  ingestion-down  ingestion-up
 
  ingestion-clean:
-	docker compose docker-compose.yaml down -v --remove-orphans
-	rm -rf ./ingestion/logs/*
+	sudo docker compose -f docker-compose.yaml down -v --remove-orphans
+	rm -rf ./logs/*
 	docker system prune -af --volumes
 	docker image prune -af
 	docker volume prune -af
