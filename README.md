@@ -1,8 +1,51 @@
-# Product Ingestion Pipeline
+# Retail Chat Agent - Product Ingestion Pipeline
 
-This repository contains the Airflow DAGs and ingestion logic for scraping products from e-commerce websites and loading them into PostgreSQL and Qdrant.
+A production-grade ETL pipeline that scrapes e-commerce product catalogs, enriches them with AI-generated embeddings, and stores them in vector and relational databases to power semantic search for a retail chat agent.
 
-## Overview
+## Purpose
+
+This pipeline automates the ingestion and vectorization of product catalogs, enabling the retail chat agent to perform intelligent semantic search across millions of products. It combines web scraping, image processing, and multi-modal embeddings to create a searchable product knowledge base.
+
+## Tech Stack
+
+- **Orchestration**: Apache Airflow
+- **Data Storage**: PostgreSQL (relational), Qdrant (vector)
+- **Embeddings**: OpenAI CLIP (text + image)
+- **Object Storage**: AWS S3
+- **Language**: Python 3.11
+- **Containerization**: Docker
+
+## Project Structure
+
+```
+.github/             # GitHub Actions configuration
+dags/               # Airflow DAG definitions
+├── products_dag.py      # Main product ingestion DAG
+└── sample_dag.py        # Example DAG template
+utilities/          # Reusable Python modules
+├── database.py          # Database connection helpers
+├── embedding.py         # CLIP embedding generation
+├── scrape.py            # Web scraping utilities
+├── product.py           # Product data models
+├── s3.py                # S3 integration
+└── vectorstore.py       # Qdrant integration
+queries/            # SQL templates
+├── create_products.sql  # Product table schema
+└── create_embeddings.sql# Embeddings table schema
+config/             # Application configuration
+└── settings.py          # Environment settings
+.gitignore             # Git ignore file
+.dockerignore          # Docker ignore file
+docker-compose.yml     # Docker Compose configuration
+env.example             # Example environment variables
+Makefile                # Makefile for common commands
+README.md               # Project documentation
+ruff.toml                # RUFF linter configuration
+
+```
+
+
+## How It Works
 
 The ingestion pipeline performs the following steps:
 
@@ -14,93 +57,8 @@ The ingestion pipeline performs the following steps:
 6. **Qdrant Upsert**: Stores embeddings in Qdrant vector database
 7. **Tracking**: Records embedding metadata in PostgreSQL
 
-## Setup
-
-### 1. Environment Variables
-
-Ensure the following environment variables are set in your `.env` file:
-
-```bash
-# AWS Configuration
-AWS_ACCESS_KEY_ID=your_access_key
-AWS_SECRET_ACCESS_KEY=your_secret_key
-AWS_S3_BUCKET_NAME=your_bucket_name
-AWS_REGION=us-east-1
-
-# Database Configuration
-POSTGRES_HOST=relational-db
-POSTGRES_USER=your_user
-POSTGRES_PASSWORD=your_password
-POSTGRES_DATABASE=your_database
-POSTGRES_PORT=5432
-
-# Qdrant Configuration
-QDRANT_URL=http://vector-db:6333
-
-# Model Configuration
-CLIP_MODEL_NAME=openai/clip-vit-base-patch32
-
-# Ingestion Configuration (optional)
-INGESTION_SCHEDULE=0 2 * * *  # Daily at 2 AM
-PRODUCT_CATEGORIES=shoes,bodysuits,jackets
-PRODUCT_CONCURRENT_REQUESTS=5
-PRODUCT_REQUEST_DELAY=1.0
-```
-
-### 2. Dependencies
-
-The ingestion pipeline requires several Python packages. These are automatically installed via `_PIP_ADDITIONAL_REQUIREMENTS` in the docker-compose file, or you can install them manually:
-
-```bash
-pip install -r ingestion/requirements.txt
-```
-
-**Note**: Installing `torch` and `transformers` can take several minutes as they are large packages.
-
-### 3. Database Schema
-
-Ensure your PostgreSQL database has the required tables. The schema is defined in `postgres/init.sql` and includes:
-
-- `products`: Product metadata
-- `product_images`: Product image URLs and S3 keys
-- `embeddings`: Tracking table for Qdrant embeddings
-
-## Usage
-
-### Running the DAG
-
-1. **Start Airflow services**:
-   ```bash
-   docker-compose -f ingestion-docker-compose.yaml up -d
-   ```
-
-2. **Access Airflow UI**: Navigate to `http://localhost:8080`
-
-3. **Enable the DAG**: Find `product_ingestion` in the DAG list and toggle it on
-
-4. **Trigger manually** (optional): Click the play button to run immediately
-
-### Configuration
-
-The DAG can be configured via environment variables:
-
-- `INGESTION_SCHEDULE`: Cron expression for automatic runs (default: `0 2 * * *`)
-- `PRODUCT_CATEGORIES`: Comma-separated list of categories to scrape
-- `PRODUCT_CONCURRENT_REQUESTS`: Number of concurrent HTTP requests (default: 5)
-- `PRODUCT_REQUEST_DELAY`: Delay between requests in seconds (default: 1.0)
-
-### Customizing Parsing Logic
-
-The parsing logic in `ingest.py` uses multiple extraction methods:
-
-1. **JSON-LD structured data** (most reliable)
-2. **Open Graph meta tags**
-3. **Common HTML patterns** (CSS selectors)
-4. **Fallback methods**
-
-To customize for a specific website, modify the `_parse_product_data()` and `get_product_urls_from_collection()` methods in `ingest.py`.
-
 ## Architecture
+
 
 ```
 ┌─────────────────┐
@@ -136,66 +94,19 @@ To customize for a specific website, modify the `_parse_product_data()` and `get
          └──────────────┘
 ```
 
-## Error Handling
+### Setup Instructions
 
-The pipeline includes error handling at multiple levels:
+1. For instructions on setting up the databases, see [docs/how-to/create-databases.md](docs/how-to/create-databases.md)
 
-- **Network errors**: Retries with exponential backoff
-- **Parsing errors**: Logs and continues with next product
-- **Database errors**: Rollback and log
-- **S3 errors**: Logs and continues (failed images won't block product)
+2. Create an AWS S3 bucket and configure credentials in `config/settings.py`
 
-## Monitoring
+3. Use the env.example file to create a `.env` file with necessary environment variables (database URLs, S3 credentials, etc.)
 
-- Check Airflow logs for detailed execution logs
-- Monitor PostgreSQL for product counts
-- Check Qdrant collections for embedding counts
-- Review S3 bucket for uploaded images
+4. Start the Airflow scheduler and webserver using Docker Compose:
+   ```bash
+   make ingestion-up
+   ```
 
-## Troubleshooting
+## Disclaimer
 
-### DAG not appearing
-- Check that `product_ingestion_dag.py` is in the `dags/` directory
-- Verify Airflow can import the module (check logs)
-- Ensure all dependencies are installed
-
-### Import errors
-- Verify `backend` directory is mounted in docker-compose
-- Check that all Python packages are installed
-- Review Airflow worker logs for import errors
-
-### Parsing issues
-- Test parsing logic on sample HTML
-- Adjust CSS selectors for your target website
-- Enable debug logging to see parsed data
-
-### Performance issues
-- Reduce `PRODUCT_CONCURRENT_REQUESTS` if hitting rate limits
-- Increase `PRODUCT_REQUEST_DELAY` to be more respectful
-- Consider pagination for large collections
-
-## Development
-
-To test the ingestion logic locally:
-
-```python
-from ingest import run_ingestion
-
-run_ingestion(
-    bucket_name="your-bucket",
-    concurrent_requests=3,
-    categories=("shoes",),
-    request_delay=1.0
-)
-```
-
-## Notes
-
-- The parsing logic is designed to be generic and work with multiple e-commerce sites
-- For production use, consider adding:
-  - Rate limiting
-  - Proxy rotation
-  - User-agent rotation
-  - Retry logic with exponential backoff
-  - Monitoring and alerting
-  - Data validation
+This project is for **informative and educational purposes only**. It is not intended for commercial use. The code, documentation, and examples provided are meant to demonstrate concepts and practices related to ETL pipelines, vector databases, and semantic search. Users are responsible for complying with applicable laws and terms of service when using or adapting this code.

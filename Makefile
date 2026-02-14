@@ -32,7 +32,7 @@ fernet-key:
 	python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
 
  ingestion-init:
-	mkdir -p ./dags ./logs ./plugins ./config ./queries ./scripts ./utilities ./ingestion/logs
+	mkdir -p ./dags ./logs ./plugins ./config ./queries ./scripts ./utilities
 	docker compose -f  docker-compose.yaml up  airflow-init
 
  ingestion-up:  ingestion-init
@@ -54,10 +54,3 @@ fernet-key:
 	docker volume prune -af
 
  ingestion-reset:  ingestion-clean  ingestion-init  ingestion-up
-
- ingestion-health:
-	docker compose -f  docker-compose.yaml ps
-	docker compose -f  docker-compose.yaml ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
-
- ingestion-scale-workers:
-	docker compose -f  docker-compose.yaml up -d --scale  ingestion-worker=$(n)
