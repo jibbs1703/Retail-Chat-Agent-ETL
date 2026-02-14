@@ -35,4 +35,6 @@ jobs:
             chmod +x docker-setup.sh
             bash docker-setup.sh
 
+            make ingestion-up
+
             echo "Deployment to staging server completed successfully!"

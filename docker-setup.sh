@@ -24,6 +24,15 @@ else
     sudo usermod -aG docker "$USER"
 fi
 
+if command -v make &> /dev/null; then
+    make_version=$(make --version | head -n 1)
+    echo "  $make_version"
+else
+    sudo apt-get install -y make
+    make_version=$(make --version | head -n 1)
+    echo "  $make_version"
+fi
+
 if command -v docker-compose &> /dev/null; then
     compose_version=$(docker-compose --version)
     echo "  Version: $compose_version"

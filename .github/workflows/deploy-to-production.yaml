@@ -16,9 +16,9 @@ jobs:
       - name: Deploy to Server
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
+          host: ${{ secrets.SERVER_HOST }} # TODO: Update this to point to the production server
+          username: ${{ secrets.SERVER_USER }} # TODO: Update this to use the production server user
+          key: ${{ secrets.SERVER_SSH_KEY }} # TODO: Update this to use the production server SSH key
           script: |
             set -e
             echo "Connecting to production server and deploying codebase..."
@@ -34,5 +34,7 @@ jobs:
             
             chmod +x docker-setup.sh
             bash docker-setup.sh
+
+            make ingestion-up
 
             echo "Deployment to production server completed successfully!"
