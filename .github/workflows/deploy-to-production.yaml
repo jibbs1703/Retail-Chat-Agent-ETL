@@ -22,15 +22,10 @@ jobs:
           script: |
             set -e
             echo "Connecting to production server and deploying codebase..."
-
-            if [ -d "Retail-Chat-Agent-ETL" ]; then
-              cd Retail-Chat-Agent-ETL
-              git fetch origin
-              git reset --hard origin/feature/deploy-ingestion
-            else
-              git clone -b feature/deploy-ingestion https://github.com/jibbs1703/Retail-Chat-Agent.git Retail-Chat-Agent-ETL
-              cd Retail-Chat-Agent-ETL
-            fi
+            
+            sudo rm -rf Retail-Chat-Agent-ETL
+            git clone -b feature/deploy-ingestion https://github.com/jibbs1703/Retail-Chat-Agent.git Retail-Chat-Agent-ETL
+            cd Retail-Chat-Agent-ETL
             
             chmod +x docker-setup.sh
             bash docker-setup.sh

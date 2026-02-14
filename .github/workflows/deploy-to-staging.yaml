@@ -23,7 +23,7 @@ jobs:
             set -e
             echo "Connecting to staging server and deploying codebase..."
 
-            rm -rf Retail-Chat-Agent-ETL
+            sudo rm -rf Retail-Chat-Agent-ETL
             git clone -b feature/deploy-ingestion https://github.com/jibbs1703/Retail-Chat-Agent.git Retail-Chat-Agent-ETL
             cd Retail-Chat-Agent-ETL
             
