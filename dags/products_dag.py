@@ -12,7 +12,7 @@ from utilities.database import get_postgres_connection, run_sql_scripts
 from utilities.logger import setup_logger
 from utilities.s3 import get_s3_client
 from utilities.scrape import ingest_products_async
-from utilities.vectorstore import get_qdrant_client
+from utilities.vectorstore import create_collection, get_qdrant_client
 
 logger = setup_logger("products_dag.py")
 settings = get_settings()
@@ -26,7 +26,7 @@ settings = get_settings()
     catchup=False,
     tags=["Products", "ETL", "Ingestion"],
     dagrun_timeout=timedelta(hours=3),
-    is_paused_upon_creation=False,
+    is_paused_upon_creation=True,
 )
 def products_etl(): # noqa: C901
     """Simple ETL DAG using TaskFlow API."""
@@ -87,6 +87,16 @@ def products_etl(): # noqa: C901
         """Create the embeddings table in the relational database if it doesn't exist."""
         run_sql_scripts(settings.postgres_database, queries, "create_embeddings.sql")
 
+    @task
+    def create_image_collection():
+        """Create the image collection in the vector database if it doesn't exist."""
+        create_collection(settings.qdrant_url, "jibbs_product_image_embeddings")
+
+    @task
+    def create_text_collection():
+        """Create the text collection in the vector database if it doesn't exist."""
+        create_collection(settings.qdrant_url, "jibbs_product_text_embeddings")
+    
     @task(execution_timeout=timedelta(hours=2.5))
     def ingest_jackets():
         """Ingest jackets from scraper into vector and relational databases."""
@@ -103,13 +113,17 @@ def products_etl(): # noqa: C901
 
     product_table = create_product_table()
     embedding_table = create_embeddings_table()
+    image_collection = create_image_collection()
+    text_collection = create_text_collection()
     
     jackets = ingest_jackets()
     shoes = ingest_shoes()
 
     product_table.set_upstream([check_database, check_vectorstore, check_aws_s3])
     embedding_table.set_upstream([check_database, check_vectorstore, check_aws_s3])
-    jackets.set_upstream([product_table, embedding_table])
+    image_collection.set_upstream([check_database, check_vectorstore, check_aws_s3])
+    text_collection.set_upstream([check_database, check_vectorstore, check_aws_s3])
+    jackets.set_upstream([product_table, embedding_table, image_collection, text_collection])
     shoes.set_upstream(jackets)
 
 

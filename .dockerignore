@@ -2,6 +2,7 @@ docs/
 scripts/
 tests/
 .git/
+.github/
 .gitignore
 ruff.toml
 pre-commit-config.yaml

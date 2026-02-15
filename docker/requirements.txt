@@ -1,0 +1,13 @@
+aiohttp
+beautifulsoup4
+boto3
+Pillow
+psycopg2-binary
+pydantic
+pydantic-settings
+python-dotenv
+qdrant-client
+requests
+torch
+tqdm
+transformers

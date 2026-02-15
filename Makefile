@@ -1,4 +1,4 @@
-.PHONY: add commit push secret-key fernet-key lint clear clear-ruff clear-pytest clear-pycache  ingestion-init  ingestion-up  ingestion-up-flower  ingestion-down  ingestion-restart  ingestion-clean  ingestion-reset  ingestion-health  ingestion-scale-workers
+.PHONY: add commit push secret-key fernet-key lint clear clear-ruff clear-pytest clear-pycache  ingestion-build  ingestion-init  ingestion-up  ingestion-up-flower  ingestion-down  ingestion-restart  ingestion-clean  ingestion-reset  ingestion-health  ingestion-scale-workers
 
 add:
 	git add .
@@ -30,6 +30,9 @@ secret-key:
 
 fernet-key:
 	python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+
+ingestion-build:
+	docker build -f docker/Dockerfile -t retail-chat-airflow:latest .
 
  ingestion-init:
 	docker-compose -f docker-compose.yaml up airflow-init

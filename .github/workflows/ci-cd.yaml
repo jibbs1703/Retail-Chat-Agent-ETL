@@ -17,10 +17,16 @@ jobs:
     name: Run Tests and Linting
     uses: ./.github/workflows/test-and-lint.yaml
     secrets: inherit
+  
+  build-and-push:
+    name: Build and Push Docker Images
+    needs: tests
+    uses: ./.github/workflows/build-and-push.yaml
+    secrets: inherit
 
   deploy-staging:
     name: Deploy to Staging Server
-    needs: tests
+    needs: build-and-push
     uses: ./.github/workflows/deploy-to-staging.yaml
     secrets: inherit
   

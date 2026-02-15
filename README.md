@@ -15,36 +15,6 @@ This pipeline automates the ingestion and vectorization of product catalogs, ena
 - **Language**: Python 3.11
 - **Containerization**: Docker
 
-## Project Structure
-
-```
-.github/             # GitHub Actions configuration
-dags/               # Airflow DAG definitions
-├── products_dag.py      # Main product ingestion DAG
-└── sample_dag.py        # Example DAG template
-utilities/          # Reusable Python modules
-├── database.py          # Database connection helpers
-├── embedding.py         # CLIP embedding generation
-├── scrape.py            # Web scraping utilities
-├── product.py           # Product data models
-├── s3.py                # S3 integration
-└── vectorstore.py       # Qdrant integration
-queries/            # SQL templates
-├── create_products.sql  # Product table schema
-└── create_embeddings.sql# Embeddings table schema
-config/             # Application configuration
-└── settings.py          # Environment settings
-.gitignore             # Git ignore file
-.dockerignore          # Docker ignore file
-docker-compose.yml     # Docker Compose configuration
-env.example             # Example environment variables
-Makefile                # Makefile for common commands
-README.md               # Project documentation
-ruff.toml                # RUFF linter configuration
-
-```
-
-
 ## How It Works
 
 The ingestion pipeline performs the following steps:
@@ -102,7 +72,12 @@ The ingestion pipeline performs the following steps:
 
 3. Use the env.example file to create a `.env` file with necessary environment variables (database URLs, S3 credentials, etc.)
 
-4. Start the Airflow scheduler and webserver using Docker Compose:
+4. Build the custom Airflow image with dependencies and DAGs baked in:
+   ```bash
+   make ingestion-build
+   ```
+
+5. Start the Airflow stack with Docker Compose:
    ```bash
    make ingestion-up
    ```
