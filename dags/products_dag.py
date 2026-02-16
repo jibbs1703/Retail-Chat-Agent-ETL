@@ -113,9 +113,9 @@ def products_etl():  # noqa: C901
     jackets = ingest_jackets()
     shoes = ingest_shoes()
 
-    product_table.set_upstream([check_database, check_vectorstore, check_aws_s3])
-    embedding_table.set_upstream([check_database, check_vectorstore, check_aws_s3])
-    qdrant_collections.set_upstream([check_database, check_vectorstore, check_aws_s3])
+    product_table.set_upstream([check_database, check_aws_s3])
+    embedding_table.set_upstream([check_database, check_aws_s3])
+    qdrant_collections.set_upstream([check_vectorstore, check_aws_s3])
     jackets.set_upstream([product_table, embedding_table, qdrant_collections])
     shoes.set_upstream(jackets)
 
