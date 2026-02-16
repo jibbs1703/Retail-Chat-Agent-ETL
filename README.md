@@ -1,5 +1,14 @@
 # Retail Chat Agent - Product Ingestion Pipeline
 
+![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-29.2-2496ED?logo=docker&logoColor=white)
+![Docker Compose](https://img.shields.io/badge/Docker_Compose-5.0-2496ED?logo=docker&logoColor=white)
+![Airflow](https://img.shields.io/badge/Apache_Airflow-3.0-017CEE?logo=apacheairflow&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
+![Qdrant](https://img.shields.io/badge/Qdrant-1.16-DC244C?logo=qdrant&logoColor=white)
+![Pydantic](https://img.shields.io/badge/Pydantic-2.11-E92063?logo=pydantic&logoColor=white)
+![Ruff](https://img.shields.io/badge/Ruff-linter-D7FF64?logo=ruff&logoColor=black)
+
 A production-grade ETL pipeline that scrapes e-commerce product catalogs, enriches them with AI-generated embeddings, and stores them in vector and relational databases to power semantic search for a retail chat agent.
 
 ## Purpose

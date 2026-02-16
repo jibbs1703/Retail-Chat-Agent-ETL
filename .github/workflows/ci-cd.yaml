@@ -21,7 +21,7 @@ jobs:
     needs: tests
     uses: ./.github/workflows/build-and-push.yaml
     permissions:
-      contents: read
+      contents: write
       packages: write
     secrets: inherit
 
