@@ -1,5 +1,5 @@
 x-airflow-common: &airflow-common
-  image: ${AIRFLOW_IMAGE_NAME:-retail-chat-airflow:latest}
+  image: ${AIRFLOW_IMAGE_NAME:-retail-chat-agent-etl:latest}
   env_file:
     - .env
   environment: &airflow-common-env

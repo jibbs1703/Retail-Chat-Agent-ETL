@@ -16,10 +16,7 @@ logger = setup_logger("database.py")
 settings = get_settings()
 
 
-def load_sql_file(
-    module: types.ModuleType,
-    filename: str
-    ) -> str:
+def load_sql_file(module: types.ModuleType, filename: str) -> str:
     """Load SQL Query from a file."""
     file_path = importlib.resources.files(module) / filename
     with open(file_path) as file:
@@ -27,10 +24,7 @@ def load_sql_file(
     return sql_commands
 
 
-def run_sql_scripts(
-    database_name: str,
-    module: types.ModuleType,
-    filename: str) -> None:
+def run_sql_scripts(database_name: str, module: types.ModuleType, filename: str) -> None:
     """Run SQL commands on the given PostgreSQL connection."""
     connection = get_postgres_connection(dbname=database_name)
     if connection is None:
@@ -106,7 +100,7 @@ def create_image_from_url(image_url: str) -> Image.Image:
 
     Args:
         image_url (str): URL of the image to fetch.
-    
+
     Returns:
         Image.Image: PIL Image object.
     Raises:
@@ -211,7 +205,7 @@ def upsert_product_data(product_data: dict) -> None:
     except psycopg2.Error as e:
         logger.error("Error upserting product data: %s", e)
         connection.rollback()
-    
+
 
 if __name__ == "__main__":
     run_sql_scripts(settings.postgres_database, "queries/drop_products.sql")

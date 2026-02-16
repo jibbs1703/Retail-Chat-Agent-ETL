@@ -1,1 +1,0 @@
-# Setting Up the Relational and Vector Databases

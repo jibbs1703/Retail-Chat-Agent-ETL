@@ -52,7 +52,7 @@ def create_image_from_url(image_url: str) -> Image.Image:
 
     Args:
         image_url (str): URL of the image to fetch.
-    
+
     Returns:
         Image.Image: PIL Image object.
     Raises:
@@ -100,10 +100,10 @@ def embed_query(query: str | Image.Image) -> np.ndarray:
 
     if hasattr(emb, "pooler_output"):
         emb = emb.pooler_output
-    
+
     if hasattr(emb, "norm"):
         emb = emb / emb.norm(dim=-1, keepdim=True)
-    
+
     else:
         logger.warning("Model output does not have 'norm' attribute. Normalization skipped.")
 
