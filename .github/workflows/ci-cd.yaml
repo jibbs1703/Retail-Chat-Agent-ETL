@@ -20,6 +20,9 @@ jobs:
     name: Build and Push Docker Images
     needs: tests
     uses: ./.github/workflows/build-and-push.yaml
+    permissions:
+      contents: read
+      packages: write
     secrets: inherit
 
   # deploy-staging:
