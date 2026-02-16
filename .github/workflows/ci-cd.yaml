@@ -9,6 +9,10 @@ on:
   pull_request:
     branches:
       - "main"
+  
+  workflow_dispatch:
+  
+  workflow_call:
 
 jobs:
   tests:
@@ -19,6 +23,7 @@ jobs:
   build-and-push:
     name: Build and Push Docker Images
     needs: tests
+    if: github.ref == 'refs/heads/main'
     uses: ./.github/workflows/build-and-push.yaml
     permissions:
       contents: write
@@ -28,6 +33,7 @@ jobs:
   # deploy-staging:
   #   name: Deploy to Staging Server
   #   needs: build-and-push
+  #   if: github.ref == 'refs/heads/main'
   #   uses: ./.github/workflows/deploy-to-staging.yaml
   #   secrets: inherit
   
