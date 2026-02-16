@@ -178,9 +178,7 @@ async def scrape_stream(
 
         collection_tasks: list[str] = []
         for page in range(1, number_of_pages + 1):
-            url = (
-                f"https://www.fashionnova.com/collections/{category}?division=women&page={page}"
-            )
+            url = f"https://www.fashionnova.com/collections/{category}?division=women&page={page}"
             collection_tasks.append(url)
 
         logger.info("Gathering product URLs from %d collection pages...", len(collection_tasks))
@@ -201,95 +199,77 @@ async def scrape_stream(
 
         tasks = [scraper.scrape_product(url) for url in urls]
 
-        for coro in tqdm.as_completed(
-            tasks, total=len(tasks), desc=f"Scraping {category.title()}"
-        ):
+        for coro in tqdm.as_completed(tasks, total=len(tasks), desc=f"Scraping {category.title()}"):
             product = await coro
             product["Product Category"] = category
             yield product
 
 
 async def ingest_products_async(
-        category: str,
+    category: str,
 ):
-        async for product in scrape_stream(
-            category=category,
-            number_of_pages=5,
-            limit_per_page=5
-        ):
-            product_id = generate_product_id(product["Product Title"].split("-")[0].strip())
-            product_title = product["Product Title"].split("-")[0].strip()
-            product_description = product.get("Product Details", [])
-            product_caption = generate_product_caption(product_title, product_description)
-            product_caption_embedding = embed_query(product_caption)
-            product_data = {
+    async for product in scrape_stream(category=category, number_of_pages=5, limit_per_page=5):
+        product_id = generate_product_id(product["Product Title"].split("-")[0].strip())
+        product_title = product["Product Title"].split("-")[0].strip()
+        product_description = product.get("Product Details", [])
+        product_caption = generate_product_caption(product_title, product_description)
+        product_caption_embedding = embed_query(product_caption)
+        product_data = {
+            "product_id": product_id,
+            "product_title": product_title,
+            "description": product_description,
+            "price": product.get("Product Price", ""),
+            "num_images": product.get("No. of Images", 0),
+            "product_images": product.get("Product Images", []),
+            "product_caption": product_caption,
+            "product_s3_image_urls": [],
+            "financing": product.get("Financing", {}),
+            "promo_tagline": product.get("Promo Tagline", ""),
+            "sizes_available": product.get("Size Options", []),
+            "product_url": product.get("Product URL", ""),
+            "product_category": product.get("Product Category", ""),
+            "product_inserted_at": datetime.now(UTC),
+            "product_updated_at": datetime.now(UTC),
+        }
+        point = await create_point_with_metadata(
+            embedding=product_caption_embedding,
+            point_id=generate_vector_id(product_title, "text"),
+            payload={
                 "product_id": product_id,
-                "product_title": product_title,
-                "description": product_description,
-                "price": product.get("Product Price", ""),
-                "num_images": product.get("No. of Images", 0),
-                "product_images": product.get("Product Images", []),
-                "product_caption": product_caption,
-                "product_s3_image_urls": [],
-                "financing": product.get("Financing", {}),
-                "promo_tagline": product.get("Promo Tagline", ""),
-                "sizes_available": product.get("Size Options", []),
-                "product_url": product.get("Product URL", ""),
-                "product_category": product.get("Product Category", ""),
-                "product_inserted_at": datetime.now(UTC),
-                "product_updated_at": datetime.now(UTC),
+                "num_images": product_data["num_images"],
+                "embedding_type": "text",
+            },
+        )
+        await upsert_points(collection_name="jibbs_product_text_embeddings", points=[point])
+        upsert_product_data(product_data=product_data)
+
+        for image_index, product_image_url in enumerate(product.get("Product Images", [])):
+            product_bytesio = stream_image_to_bytesio(product_image_url)
+            s3_image_url = upload_stream_to_s3(
+                bucket_name="jibbs-test-catalog",
+                data_stream=product_bytesio,
+                product_id=product_id,
+                image_index=image_index,
+            )
+            product_image_embedding = embed_query(create_image_from_url(product_image_url))
+            product_vector_id = generate_vector_id(product_title, "image", image_index)
+            product_image_embedding_data = {
+                "vector_id": product_vector_id,
+                "product_id": product_id,
+                "product_image_index": image_index,
+                "product_s3_image_url": s3_image_url,
+                "embedding_type": "image",
+                "embedding_inserted_at": datetime.now(UTC),
+                "embedding_updated_at": datetime.now(UTC),
             }
             point = await create_point_with_metadata(
-                embedding=product_caption_embedding,
-                point_id=generate_vector_id(product_title, "text"),
+                embedding=product_image_embedding,
+                point_id=product_vector_id,
                 payload={
-                    "product_id": product_id,
-                    "num_images": product_data["num_images"],
-                    "embedding_type": "text",
-                }
+                    "product_id": product_image_embedding_data["product_id"],
+                    "product_s3_image_url": (product_image_embedding_data["product_s3_image_url"]),
+                    "embedding_type": product_image_embedding_data["embedding_type"],
+                },
             )
-            await upsert_points(
-                collection_name="jibbs_product_text_embeddings",
-                points=[point]
-            )
-            upsert_product_data(
-                product_data=product_data
-            )
-
-            for image_index, product_image_url in enumerate(product.get("Product Images", [])):
-                product_bytesio = stream_image_to_bytesio(product_image_url)
-                s3_image_url = upload_stream_to_s3(
-                    bucket_name="jibbs-test-catalog",
-                    data_stream=product_bytesio,
-                    product_id=product_id,
-                    image_index=image_index,
-                )
-                product_image_embedding = embed_query(create_image_from_url(product_image_url))
-                product_vector_id = generate_vector_id(product_title, "image", image_index)
-                product_image_embedding_data = {
-                    "vector_id": product_vector_id,
-                    "product_id": product_id,
-                    "product_image_index": image_index,
-                    "product_s3_image_url": s3_image_url,
-                    "embedding_type": "image",
-                    "embedding_inserted_at": datetime.now(UTC),
-                    "embedding_updated_at": datetime.now(UTC),
-                }
-                point = await create_point_with_metadata(
-                    embedding=product_image_embedding,
-                    point_id=product_vector_id,
-                    payload={
-                        "product_id": product_image_embedding_data["product_id"],
-                        "product_s3_image_url": (
-                            product_image_embedding_data["product_s3_image_url"]
-                        ),
-                        "embedding_type": product_image_embedding_data["embedding_type"],
-                    }
-                )
-                await upsert_points(
-                    collection_name="jibbs_product_image_embeddings",
-                    points=[point]
-                )
-                upsert_embedding_data(
-                    embedding_data=product_image_embedding_data
-                )
+            await upsert_points(collection_name="jibbs_product_image_embeddings", points=[point])
+            upsert_embedding_data(embedding_data=product_image_embedding_data)

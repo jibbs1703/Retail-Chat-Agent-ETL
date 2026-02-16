@@ -1,5 +1,14 @@
 # Retail Chat Agent - Product Ingestion Pipeline
 
+![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-29.2-2496ED?logo=docker&logoColor=white)
+![Docker Compose](https://img.shields.io/badge/Docker_Compose-5.0-2496ED?logo=docker&logoColor=white)
+![Airflow](https://img.shields.io/badge/Apache_Airflow-3.0-017CEE?logo=apacheairflow&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
+![Qdrant](https://img.shields.io/badge/Qdrant-1.16-DC244C?logo=qdrant&logoColor=white)
+![Pydantic](https://img.shields.io/badge/Pydantic-2.11-E92063?logo=pydantic&logoColor=white)
+![Ruff](https://img.shields.io/badge/Ruff-linter-D7FF64?logo=ruff&logoColor=black)
+
 A production-grade ETL pipeline that scrapes e-commerce product catalogs, enriches them with AI-generated embeddings, and stores them in vector and relational databases to power semantic search for a retail chat agent.
 
 ## Purpose
@@ -14,36 +23,6 @@ This pipeline automates the ingestion and vectorization of product catalogs, ena
 - **Object Storage**: AWS S3
 - **Language**: Python 3.11
 - **Containerization**: Docker
-
-## Project Structure
-
-```
-.github/             # GitHub Actions configuration
-dags/               # Airflow DAG definitions
-├── products_dag.py      # Main product ingestion DAG
-└── sample_dag.py        # Example DAG template
-utilities/          # Reusable Python modules
-├── database.py          # Database connection helpers
-├── embedding.py         # CLIP embedding generation
-├── scrape.py            # Web scraping utilities
-├── product.py           # Product data models
-├── s3.py                # S3 integration
-└── vectorstore.py       # Qdrant integration
-queries/            # SQL templates
-├── create_products.sql  # Product table schema
-└── create_embeddings.sql# Embeddings table schema
-config/             # Application configuration
-└── settings.py          # Environment settings
-.gitignore             # Git ignore file
-.dockerignore          # Docker ignore file
-docker-compose.yml     # Docker Compose configuration
-env.example             # Example environment variables
-Makefile                # Makefile for common commands
-README.md               # Project documentation
-ruff.toml                # RUFF linter configuration
-
-```
-
 
 ## How It Works
 
@@ -102,7 +81,12 @@ The ingestion pipeline performs the following steps:
 
 3. Use the env.example file to create a `.env` file with necessary environment variables (database URLs, S3 credentials, etc.)
 
-4. Start the Airflow scheduler and webserver using Docker Compose:
+4. Build the custom Airflow image with dependencies and DAGs baked in:
+   ```bash
+   make ingestion-build
+   ```
+
+5. Start the Airflow stack with Docker Compose:
    ```bash
    make ingestion-up
    ```

@@ -42,3 +42,8 @@ if ! docker compose version &>/dev/null; then
     exit 1
 fi
 echo "Docker Compose available: $(docker compose version)"
+
+
+docker compose up -d
+sleep 10
+docker compose ps

@@ -12,7 +12,7 @@ from utilities.database import get_postgres_connection, run_sql_scripts
 from utilities.logger import setup_logger
 from utilities.s3 import get_s3_client
 from utilities.scrape import ingest_products_async
-from utilities.vectorstore import get_qdrant_client
+from utilities.vectorstore import create_collection, get_qdrant_client
 
 logger = setup_logger("products_dag.py")
 settings = get_settings()
@@ -28,7 +28,7 @@ settings = get_settings()
     dagrun_timeout=timedelta(hours=3),
     is_paused_upon_creation=False,
 )
-def products_etl(): # noqa: C901
+def products_etl():  # noqa: C901
     """Simple ETL DAG using TaskFlow API."""
 
     @task
@@ -61,7 +61,7 @@ def products_etl(): # noqa: C901
         except requests.RequestException as e:
             logger.error("Error during Qdrant connection check: %s", e)
             return f"Qdrant Connection Check Error: {e}"
-    
+
     @task
     def aws_s3_check() -> str:
         """AWS S3 Connection check."""
@@ -76,7 +76,7 @@ def products_etl(): # noqa: C901
         except requests.RequestException as e:
             logger.error("Error during AWS S3 connection check: %s", e)
             return f"AWS S3 Connection Check Error: {e}"
-        
+
     @task
     def create_product_table():
         """Create the products table in the relational database if it doesn't exist."""
@@ -87,6 +87,11 @@ def products_etl(): # noqa: C901
         """Create the embeddings table in the relational database if it doesn't exist."""
         run_sql_scripts(settings.postgres_database, queries, "create_embeddings.sql")
 
+    @task
+    def create_qdrant_collections():
+        """Create the Qdrant collections in the vector database if they don't exist."""
+        asyncio.run(create_collection())
+
     @task(execution_timeout=timedelta(hours=2.5))
     def ingest_jackets():
         """Ingest jackets from scraper into vector and relational databases."""
@@ -96,20 +101,22 @@ def products_etl(): # noqa: C901
     def ingest_shoes():
         """Ingest shoes from scraper into vector and relational databases."""
         asyncio.run(ingest_products_async(category="shoes"))
-    
+
     check_database = relational_database_check()
     check_vectorstore = vector_database_check()
     check_aws_s3 = aws_s3_check()
 
     product_table = create_product_table()
     embedding_table = create_embeddings_table()
-    
+    qdrant_collections = create_qdrant_collections()
+
     jackets = ingest_jackets()
     shoes = ingest_shoes()
 
-    product_table.set_upstream([check_database, check_vectorstore, check_aws_s3])
-    embedding_table.set_upstream([check_database, check_vectorstore, check_aws_s3])
-    jackets.set_upstream([product_table, embedding_table])
+    product_table.set_upstream([check_database, check_aws_s3])
+    embedding_table.set_upstream([check_database, check_aws_s3])
+    qdrant_collections.set_upstream([check_vectorstore, check_aws_s3])
+    jackets.set_upstream([product_table, embedding_table, qdrant_collections])
     shoes.set_upstream(jackets)
 
 

@@ -11,7 +11,7 @@ logger = setup_logger("vectorstore.py")
 settings = get_settings()
 
 COLLECTIONS: list[str] = settings.qdrant_collections.split(",")
-ALLOWED_COLLECTIONS = ["jibbs_product_image_embeddings","jibbs_product_text_embeddings"]
+ALLOWED_COLLECTIONS = ["jibbs_product_image_embeddings", "jibbs_product_text_embeddings"]
 
 
 def get_qdrant_client() -> AsyncQdrantClient:
@@ -24,22 +24,20 @@ def get_qdrant_client() -> AsyncQdrantClient:
 
 
 def validate_collection_name(
-    collection_name: str,
-    allowed_collections: list[str] = ALLOWED_COLLECTIONS) -> bool:
+    collection_name: str, allowed_collections: list[str] = ALLOWED_COLLECTIONS
+) -> bool:
     """Validate if the collection name is recognized."""
     return collection_name in allowed_collections
 
 
-async def create_collection(
-    collections: list[str] = COLLECTIONS) -> None:
+async def create_collection(collections: list[str] = COLLECTIONS) -> None:
     """Create Qdrant collections if they do not exist."""
     client = get_qdrant_client()
     try:
         created_collections = await client.get_collections()
         for collection_name in collections:
             if validate_collection_name(collection_name) and collection_name not in [
-                collection.name
-                for collection in created_collections.collections
+                collection.name for collection in created_collections.collections
             ]:
                 await client.create_collection(
                     collection_name=collection_name,
@@ -50,9 +48,7 @@ async def create_collection(
         await client.close()
 
 
-async def delete_collection(
-    collection_name: str
-    ) -> None:
+async def delete_collection(collection_name: str) -> None:
     """
     Delete a Qdrant Collection.
 
@@ -68,25 +64,17 @@ async def delete_collection(
         if collection_name in created_collections or collection_name in ALLOWED_COLLECTIONS:
             await client.delete_collection(collection_name=collection_name)
     finally:
-            await client.close()
-            
+        await client.close()
+
 
 async def create_point_with_metadata(
-        embedding: np.ndarray,
-        point_id: str,
-        payload: dict | None = None
-    ) -> PointStruct:
+    embedding: np.ndarray, point_id: str, payload: dict | None = None
+) -> PointStruct:
     """Create a Qdrant PointStruct from an embedding vector."""
-    return PointStruct(
-        id=point_id,
-        vector=embedding.tolist(),
-        payload=payload
-    )
+    return PointStruct(id=point_id, vector=embedding.tolist(), payload=payload)
 
 
-async def upsert_points(
-        collection_name: str,
-       points: list[PointStruct]) -> None:
+async def upsert_points(collection_name: str, points: list[PointStruct]) -> None:
     """Upsert points to Qdrant collection."""
     client = get_qdrant_client()
     if validate_collection_name(collection_name):
