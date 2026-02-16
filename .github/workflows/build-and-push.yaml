@@ -58,3 +58,14 @@ jobs:
             **Commit:** ${{ github.sha }}
           generate_release_notes: true
           make_latest: true
+
+      - name: Clean up old container images
+        uses: quartx-analytics/ghcr-cleaner@v1
+        with:
+          owner-type: user
+          token: ${{ secrets.TOKEN_GITHUB }}
+          repository-owner: ${{ github.repository_owner }}
+          repository-name: ${{ github.repository }}
+          package-name: ${{ env.IMAGE_NAME }}
+          delete-untagged: true
+          keep-at-most: 5
