@@ -27,7 +27,7 @@ jobs:
           script: |
             set -e
 
-            echo "Connecting to staging server and deploying Codebase"
+            echo "Connecting to production server and deploying Codebase"
             if [ -d "Retail-Chat-Agent-ETL" ]; then
               rm -rf Retail-Chat-Agent-ETL
             fi
@@ -35,7 +35,7 @@ jobs:
             git clone https://${{ secrets.TOKEN_GITHUB }}@github.com/jibbs1703/Retail-Chat-Agent-ETL.git
             cd Retail-Chat-Agent-ETL
 
-            cat > .env <<EOF
+            cat > .env <<'ENVEOF'
             _AIRFLOW_WWW_USER_PASSWORD=${{ secrets._AIRFLOW_WWW_USER_PASSWORD }}
             _AIRFLOW_WWW_USER_USERNAME=${{ secrets._AIRFLOW_WWW_USER_USERNAME }}
             AIRFLOW__API_AUTH__JWT_SECRET=${{ secrets.AIRFLOW__API_AUTH__JWT_SECRET }}
@@ -61,22 +61,26 @@ jobs:
             POSTGRES_USER=${{ secrets.POSTGRES_USER }}
             QDRANT_COLLECTIONS=${{ secrets.QDRANT_COLLECTIONS }}
             QDRANT_URL=${{ secrets.QDRANT_URL }}
-            EOF
+            ENVEOF
+            sed -i 's/^[[:space:]]*//' .env
 
             chmod +x docker-setup.sh
             ./docker-setup.sh
 
-            sudo docker-compose -f docker-compose.yaml down -v --remove-orphans
+            sudo docker compose -f docker-compose.yaml down --remove-orphans
             sudo rm -rf ./logs/*
-            sudo docker system prune -af --volumes
             sudo docker image prune -af
-            sudo docker volume prune -af
 
             echo ${{ secrets.TOKEN_GITHUB }} | sudo docker login ${{ env.IMAGE_REGISTRY }} -u ${{ github.actor }} --password-stdin
 
             sudo docker pull ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_NAME }}:latest
+            sudo docker tag ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_NAME }}:latest retail-chat-agent-etl:latest
 
-            sudo docker-compose -f docker-compose.yaml up airflow-init
-            sudo docker-compose -f docker-compose.yaml up -d
+            sudo docker compose -f docker-compose.yaml up airflow-init --abort-on-container-exit
+            sudo docker compose -f docker-compose.yaml up -d
 
-            echo "Deployment to staging server completed successfully!"
+            echo "Waiting for services to become healthy..."
+            sleep 30
+            sudo docker compose -f docker-compose.yaml ps
+
+            echo "Deployment to production server completed successfully!"

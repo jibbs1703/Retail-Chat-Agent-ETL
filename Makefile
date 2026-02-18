@@ -32,27 +32,25 @@ fernet-key:
 	python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
 
 ingestion-build:
-	sudo docker build -f docker/Dockerfile -t retail-chat-agent-etl:latest .
+	docker build -f docker/Dockerfile -t retail-chat-agent-etl:latest .
 
- ingestion-init:
-	sudo docker-compose -f docker-compose.yaml up airflow-init
+ingestion-init:
+	docker compose -f docker-compose.yaml up airflow-init --abort-on-container-exit
 
- ingestion-up:  ingestion-init
-	sudo docker-compose -f docker-compose.yaml up -d
+ingestion-up: ingestion-init
+	docker compose -f docker-compose.yaml up -d
 
- ingestion-up-flower:  ingestion-init
-	sudo docker-compose -f docker-compose.yaml --profile flower up -d
+ingestion-up-flower: ingestion-init
+	docker compose -f docker-compose.yaml --profile flower up -d
 
- ingestion-down:
-	sudo docker-compose -f docker-compose.yaml down
+ingestion-down:
+	docker compose -f docker-compose.yaml down
 
- ingestion-restart:  ingestion-down  ingestion-up
+ingestion-restart: ingestion-down ingestion-up
 
- ingestion-clean:
-	sudo docker-compose -f docker-compose.yaml down -v --remove-orphans
-	sudo rm -rf ./logs/*
-	sudo docker system prune -af --volumes
-	sudo docker image prune -af
-	sudo docker volume prune -af
+ingestion-clean:
+	docker compose -f docker-compose.yaml down -v --remove-orphans
+	rm -rf ./logs/*
+	docker image prune -af
 
- ingestion-reset:  ingestion-clean  ingestion-init  ingestion-up
+ingestion-reset: ingestion-clean ingestion-init ingestion-up
