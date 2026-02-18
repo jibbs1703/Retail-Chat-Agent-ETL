@@ -10,6 +10,7 @@ import aiohttp
 from bs4 import BeautifulSoup
 from tqdm.asyncio import tqdm
 
+from config.settings import get_settings
 from utilities.database import upsert_embedding_data, upsert_product_data
 from utilities.embedding import create_image_from_url, embed_query
 from utilities.logger import setup_logger
@@ -23,6 +24,7 @@ from utilities.s3 import upload_stream_to_s3
 from utilities.vectorstore import create_point_with_metadata, upsert_points
 
 logger = setup_logger("scrape.py")
+settings = get_settings()
 
 
 class WebScraper:
@@ -246,7 +248,7 @@ async def ingest_products_async(
         for image_index, product_image_url in enumerate(product.get("Product Images", [])):
             product_bytesio = stream_image_to_bytesio(product_image_url)
             s3_image_url = upload_stream_to_s3(
-                bucket_name="jibbs-test-catalog",
+                bucket_name=settings.aws_s3_bucket_name,
                 data_stream=product_bytesio,
                 product_id=product_id,
                 image_index=image_index,

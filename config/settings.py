@@ -32,22 +32,13 @@ class IngestionSettings(BaseSettings):
     aws_region: str = os.getenv("AWS_REGION")
     aws_s3_bucket_name: str = os.getenv("AWS_S3_BUCKET_NAME")
     aws_secret_access_key: str = os.getenv("AWS_SECRET_ACCESS_KEY")
-    blip_model_name: str = os.getenv("BLIP_MODEL_NAME")
-    clip_model_name: str = os.getenv("CLIP_MODEL_NAME")
-    max_image_size: int = 4096
     postgres_database: str = os.getenv("POSTGRES_DATABASE")
     postgres_host: str = os.getenv("POSTGRES_HOST")
     postgres_password: str = os.getenv("POSTGRES_PASSWORD")
     postgres_port: int = int(os.getenv("POSTGRES_PORT"))
     postgres_user: str = os.getenv("POSTGRES_USER")
-    product_default_categories: list[str] = ["shoes", "bodysuits", "jackets"]
-    product_default_pages_per_category: int = 3
-    product_default_products_per_page: int = 60
-    product_default_concurrent_requests: int = 5
     qdrant_url: str = os.getenv("QDRANT_URL")
-    qdrant_collections: str = os.getenv("QDRANT_COLLECTIONS", "")
-    supported_image_extensions: set[str] = {".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp"}
-    supported_image_formats: set[str] = {"JPEG", "PNG", "GIF", "WEBP", "BMP"}
+    qdrant_collections: str = os.getenv("QDRANT_COLLECTIONS")
 
 
 @lru_cache

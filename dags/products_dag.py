@@ -10,7 +10,7 @@ import queries
 from config.settings import get_settings
 from utilities.database import get_postgres_connection, run_sql_scripts
 from utilities.logger import setup_logger
-from utilities.s3 import get_s3_client
+from utilities.s3 import create_s3_bucket, get_s3_client
 from utilities.scrape import ingest_products_async
 from utilities.vectorstore import create_collection, get_qdrant_client
 
@@ -92,6 +92,11 @@ def products_etl():  # noqa: C901
         """Create the Qdrant collections in the vector database if they don't exist."""
         asyncio.run(create_collection())
 
+    @task
+    def create_bucket():
+        """Create the S3 bucket if it doesn't exist."""
+        create_s3_bucket(settings.aws_s3_bucket_name)
+
     @task(execution_timeout=timedelta(hours=2.5))
     def ingest_jackets():
         """Ingest jackets from scraper into vector and relational databases."""
@@ -109,14 +114,16 @@ def products_etl():  # noqa: C901
     product_table = create_product_table()
     embedding_table = create_embeddings_table()
     qdrant_collections = create_qdrant_collections()
+    s3_bucket = create_bucket()
 
     jackets = ingest_jackets()
     shoes = ingest_shoes()
 
-    product_table.set_upstream([check_database, check_aws_s3])
-    embedding_table.set_upstream([check_database, check_aws_s3])
-    qdrant_collections.set_upstream([check_vectorstore, check_aws_s3])
-    jackets.set_upstream([product_table, embedding_table, qdrant_collections])
+    product_table.set_upstream([check_database])
+    embedding_table.set_upstream([check_database])
+    qdrant_collections.set_upstream([check_vectorstore])
+    s3_bucket.set_upstream([check_aws_s3])
+    jackets.set_upstream([product_table, embedding_table, qdrant_collections, s3_bucket])
     shoes.set_upstream(jackets)
 
 

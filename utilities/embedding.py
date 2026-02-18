@@ -8,12 +8,11 @@ import torch
 from PIL import Image
 from transformers import CLIPModel, CLIPProcessor
 
-from config.settings import get_device, get_settings
+from config.settings import get_device
 from utilities.logger import setup_logger
 
 device = get_device()
 logger = setup_logger("embedding.py")
-settings = get_settings()
 
 _clip_model: CLIPModel | None = None
 _clip_processor: CLIPProcessor | None = None
@@ -29,7 +28,7 @@ def load_clip_model() -> CLIPModel:
     global _clip_model
     if _clip_model is None:
         device = get_device()
-        _clip_model = CLIPModel.from_pretrained(settings.clip_model_name).to(device)
+        _clip_model = CLIPModel.from_pretrained("openai/clip-vit-large-patch14").to(device)
     return _clip_model
 
 
@@ -42,7 +41,7 @@ def load_clip_processor() -> CLIPProcessor:
     """
     global _clip_processor
     if _clip_processor is None:
-        _clip_processor = CLIPProcessor.from_pretrained(settings.clip_model_name)
+        _clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-large-patch14")
     return _clip_processor
 
 

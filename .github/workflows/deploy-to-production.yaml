@@ -35,13 +35,52 @@ jobs:
             git clone https://${{ secrets.TOKEN_GITHUB }}@github.com/jibbs1703/Retail-Chat-Agent-ETL.git
             cd Retail-Chat-Agent-ETL
 
+            cat > .env <<EOF
+            AIRFLOW_IMAGE_NAME=${{ secrets.AIRFLOW_IMAGE_NAME }}
+            _AIRFLOW_WWW_USER_PASSWORD=${{ secrets._AIRFLOW_WWW_USER_PASSWORD }}
+            _AIRFLOW_WWW_USER_USERNAME=${{ secrets._AIRFLOW_WWW_USER_USERNAME }}
+            _PIP_ADDITIONAL_REQUIREMENTS=${{ secrets._PIP_ADDITIONAL_REQUIREMENTS }}
+            AIRFLOW__API_AUTH__JWT_SECRET=${{ secrets.AIRFLOW__API_AUTH__JWT_SECRET }}
+            AIRFLOW__CORE__FERNET_KEY=${{ secrets.AIRFLOW__CORE__FERNET_KEY }}
+            AIRFLOW__WEBSERVER__SECRET_KEY=${{ secrets.AIRFLOW__WEBSERVER__SECRET_KEY }}
+            AIRFLOW_ADMIN_PASSWORD=${{ secrets.AIRFLOW_ADMIN_PASSWORD }}
+            AIRFLOW_ADMIN_USER=${{ secrets.AIRFLOW_ADMIN_USER }}
+            AIRFLOW_POSTGRES_DB=${{ secrets.AIRFLOW_POSTGRES_DB }}
+            AIRFLOW_POSTGRES_PASSWORD=${{ secrets.AIRFLOW_POSTGRES_PASSWORD }}
+            AIRFLOW_POSTGRES_PORT=${{ secrets.AIRFLOW_POSTGRES_PORT }}
+            AIRFLOW_POSTGRES_USER=${{ secrets.AIRFLOW_POSTGRES_USER }}
+            AIRFLOW_PROJ_DIR=${{ secrets.AIRFLOW_PROJ_DIR }}
+            AIRFLOW_REDIS_PASSWORD=${{ secrets.AIRFLOW_REDIS_PASSWORD }}
+            AIRFLOW_UID=${{ secrets.AIRFLOW_UID }}
+            FLOWER_BASIC_AUTH=${{ secrets.FLOWER_BASIC_AUTH }}
+            AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_REGION=${{ secrets.AWS_REGION }}
+            AWS_S3_BUCKET_NAME=${{ secrets.AWS_S3_BUCKET_NAME }}
+            AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            HF_TOKEN=${{ secrets.HF_TOKEN }}
+            POSTGRES_DATABASE=${{ secrets.POSTGRES_DATABASE }}
+            POSTGRES_HOST=${{ secrets.POSTGRES_HOST }}
+            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+            POSTGRES_PORT=${{ secrets.POSTGRES_PORT }}
+            POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+            QDRANT_COLLECTIONS=${{ secrets.QDRANT_COLLECTIONS }}
+            QDRANT_URL=${{ secrets.QDRANT_URL }}
+            EOF
+
             chmod +x docker-setup.sh
             ./docker-setup.sh
 
+            sudo docker-compose -f docker-compose.yaml down -v --remove-orphans
+            sudo rm -rf ./logs/*
+            sudo docker system prune -af --volumes
+            sudo docker image prune -af
+            sudo docker volume prune -af
+
             echo ${{ secrets.TOKEN_GITHUB }} | sudo docker login ${{ env.IMAGE_REGISTRY }} -u ${{ github.actor }} --password-stdin
 
-            docker pull ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_NAME }}:latest
+            sudo docker pull ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_NAME }}:latest
 
-            make ingestion-restart
+            sudo docker-compose -f docker-compose.yaml up airflow-init
+            sudo docker-compose -f docker-compose.yaml up -d
 
             echo "Deployment to staging server completed successfully!"
