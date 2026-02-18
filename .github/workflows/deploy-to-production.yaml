@@ -3,6 +3,11 @@ name: Deploy to Production Server
 on:
   workflow_call
 
+env:
+  IMAGE_REGISTRY: ghcr.io
+  IMAGE_OWNER: ${{ github.actor }}
+  IMAGE_NAME: retail-chat-agent-etl
+
 jobs:
   deploy-to-server:
     name: Deploy Codebase to Production Server
@@ -21,8 +26,22 @@ jobs:
           key: ${{ secrets.PRODUCTION_SERVER_SSH_KEY }}
           script: |
             set -e
-            echo "Connecting to production server and deploying codebase..."
-            
-            "Add deployment commands here, such as pulling latest code, restarting services, etc."
 
-            echo "Deployment to production server completed successfully!"
+            echo "Connecting to staging server and deploying Codebase"
+            if [ -d "Retail-Chat-Agent-ETL" ]; then
+              rm -rf Retail-Chat-Agent-ETL
+            fi
+
+            git clone https://${{ secrets.TOKEN_GITHUB }}@github.com/jibbs1703/Retail-Chat-Agent-ETL.git
+            cd Retail-Chat-Agent-ETL
+
+            chmod +x docker-setup.sh
+            ./docker-setup.sh
+
+            echo ${{ secrets.TOKEN_GITHUB }} | sudo docker login ${{ env.IMAGE_REGISTRY }} -u ${{ github.actor }} --password-stdin
+
+            docker pull ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_NAME }}:latest
+
+            make ingestion-restart
+
+            echo "Deployment to staging server completed successfully!"

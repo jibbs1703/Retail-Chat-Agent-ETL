@@ -26,3 +26,11 @@ jobs:
       - name: Lint Python Scripts
         run: |
           python -m ruff check config dags utilities
+          
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: python
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3

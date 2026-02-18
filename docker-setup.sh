@@ -15,7 +15,7 @@ else
     done
 
     sudo apt-get update -y
-    sudo apt-get install -y ca-certificates curl gnupg
+    sudo apt-get install -y ca-certificates curl gnupg make
 
     sudo install -m 0755 -d /etc/apt/keyrings
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \

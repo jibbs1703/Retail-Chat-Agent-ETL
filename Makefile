@@ -34,7 +34,7 @@ fernet-key:
 ingestion-build:
 	docker build -f docker/Dockerfile -t retail-chat-agent-etl:latest .
 
- ingestion-init: ingestion-build
+ ingestion-init:
 	docker-compose -f docker-compose.yaml up airflow-init
 
  ingestion-up:  ingestion-init
