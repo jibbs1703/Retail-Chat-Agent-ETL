@@ -26,12 +26,12 @@ jobs:
       packages: write
     secrets: inherit
 
-  # deploy-staging:
-  #   name: Deploy to Staging Server
-  #   needs: build-and-push
-  #   if: github.ref == 'refs/heads/main'
-  #   uses: ./.github/workflows/deploy-to-staging.yaml
-  #   secrets: inherit
+  deploy-staging:
+    name: Deploy to Staging Server
+    needs: build-and-push
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/deploy-to-staging.yaml
+    secrets: inherit
   
   # deploy-production:
   #   name: Deploy to Production Server
