@@ -36,10 +36,8 @@ jobs:
             cd Retail-Chat-Agent-ETL
 
             cat > .env <<EOF
-            AIRFLOW_IMAGE_NAME=${{ secrets.AIRFLOW_IMAGE_NAME }}
             _AIRFLOW_WWW_USER_PASSWORD=${{ secrets._AIRFLOW_WWW_USER_PASSWORD }}
             _AIRFLOW_WWW_USER_USERNAME=${{ secrets._AIRFLOW_WWW_USER_USERNAME }}
-            _PIP_ADDITIONAL_REQUIREMENTS=${{ secrets._PIP_ADDITIONAL_REQUIREMENTS }}
             AIRFLOW__API_AUTH__JWT_SECRET=${{ secrets.AIRFLOW__API_AUTH__JWT_SECRET }}
             AIRFLOW__CORE__FERNET_KEY=${{ secrets.AIRFLOW__CORE__FERNET_KEY }}
             AIRFLOW__WEBSERVER__SECRET_KEY=${{ secrets.AIRFLOW__WEBSERVER__SECRET_KEY }}
@@ -49,9 +47,7 @@ jobs:
             AIRFLOW_POSTGRES_PASSWORD=${{ secrets.AIRFLOW_POSTGRES_PASSWORD }}
             AIRFLOW_POSTGRES_PORT=${{ secrets.AIRFLOW_POSTGRES_PORT }}
             AIRFLOW_POSTGRES_USER=${{ secrets.AIRFLOW_POSTGRES_USER }}
-            AIRFLOW_PROJ_DIR=${{ secrets.AIRFLOW_PROJ_DIR }}
             AIRFLOW_REDIS_PASSWORD=${{ secrets.AIRFLOW_REDIS_PASSWORD }}
-            AIRFLOW_UID=${{ secrets.AIRFLOW_UID }}
             FLOWER_BASIC_AUTH=${{ secrets.FLOWER_BASIC_AUTH }}
             AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
             AWS_REGION=${{ secrets.AWS_REGION }}
