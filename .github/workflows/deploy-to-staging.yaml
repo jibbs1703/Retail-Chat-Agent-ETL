@@ -29,7 +29,7 @@ jobs:
 
             echo "Connecting to staging server and deploying Codebase"
             if [ -d "Retail-Chat-Agent-ETL" ]; then
-              rm -rf Retail-Chat-Agent-ETL
+              sudo rm -rf Retail-Chat-Agent-ETL
             fi
 
             git clone https://${{ secrets.TOKEN_GITHUB }}@github.com/jibbs1703/Retail-Chat-Agent-ETL.git
@@ -69,7 +69,6 @@ jobs:
             ./docker-setup.sh
 
             sudo docker compose -f docker-compose.yaml down --remove-orphans
-            sudo rm -rf ./logs/*
             sudo docker image prune -af
 
             echo ${{ secrets.TOKEN_GITHUB }} | sudo docker login ${{ env.IMAGE_REGISTRY }} -u ${{ github.actor }} --password-stdin
