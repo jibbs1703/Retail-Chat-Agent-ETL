@@ -27,6 +27,7 @@ settings = get_settings()
     tags=["Products", "ETL", "Ingestion"],
     dagrun_timeout=timedelta(hours=3),
     is_paused_upon_creation=False,
+    max_active_runs=1,
 )
 def products_etl():  # noqa: C901
     """Simple ETL DAG using TaskFlow API."""
