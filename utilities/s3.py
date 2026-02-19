@@ -82,7 +82,7 @@ def check_s3_bucket_exists(bucket_name: str) -> bool:
 
 def create_s3_bucket(bucket_name: str) -> bool:
     """
-    Create an S3 bucket.
+    Create an S3 bucket if it does not already exist.
 
     Args:
         bucket_name (str): Name of the S3 bucket to create.
@@ -100,9 +100,12 @@ def create_s3_bucket(bucket_name: str) -> bool:
         raise NoCredentialsError("S3 client could not be created due to missing credentials.")
 
     if check_s3_bucket_exists(bucket_name):
-        return
+        return True
     try:
-        s3_client.create_bucket(Bucket=bucket_name)
+        s3_client.create_bucket(
+            Bucket=bucket_name,
+            CreateBucketConfiguration={"LocationConstraint": settings.aws_region},
+        )
         logger.info("Bucket %s created successfully.", bucket_name)
         return True
     except ClientError as e:

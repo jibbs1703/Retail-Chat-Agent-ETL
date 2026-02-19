@@ -3,6 +3,11 @@ name: Deploy to Production Server
 on:
   workflow_call
 
+env:
+  IMAGE_REGISTRY: ghcr.io
+  IMAGE_OWNER: ${{ github.actor }}
+  IMAGE_NAME: retail-chat-agent-etl
+
 jobs:
   deploy-to-server:
     name: Deploy Codebase to Production Server
@@ -21,8 +26,60 @@ jobs:
           key: ${{ secrets.PRODUCTION_SERVER_SSH_KEY }}
           script: |
             set -e
-            echo "Connecting to production server and deploying codebase..."
-            
-            "Add deployment commands here, such as pulling latest code, restarting services, etc."
+
+            echo "Connecting to production server and deploying Codebase"
+            if [ -d "Retail-Chat-Agent-ETL" ]; then
+              sudo rm -rf Retail-Chat-Agent-ETL
+            fi
+
+            git clone https://${{ secrets.TOKEN_GITHUB }}@github.com/jibbs1703/Retail-Chat-Agent-ETL.git
+            cd Retail-Chat-Agent-ETL
+
+            cat > .env <<'ENVEOF'
+            _AIRFLOW_WWW_USER_PASSWORD=${{ secrets._AIRFLOW_WWW_USER_PASSWORD }}
+            _AIRFLOW_WWW_USER_USERNAME=${{ secrets._AIRFLOW_WWW_USER_USERNAME }}
+            AIRFLOW__API_AUTH__JWT_SECRET=${{ secrets.AIRFLOW__API_AUTH__JWT_SECRET }}
+            AIRFLOW__CORE__FERNET_KEY=${{ secrets.AIRFLOW__CORE__FERNET_KEY }}
+            AIRFLOW__WEBSERVER__SECRET_KEY=${{ secrets.AIRFLOW__WEBSERVER__SECRET_KEY }}
+            AIRFLOW_ADMIN_PASSWORD=${{ secrets.AIRFLOW_ADMIN_PASSWORD }}
+            AIRFLOW_ADMIN_USER=${{ secrets.AIRFLOW_ADMIN_USER }}
+            AIRFLOW_POSTGRES_DB=${{ secrets.AIRFLOW_POSTGRES_DB }}
+            AIRFLOW_POSTGRES_PASSWORD=${{ secrets.AIRFLOW_POSTGRES_PASSWORD }}
+            AIRFLOW_POSTGRES_PORT=${{ secrets.AIRFLOW_POSTGRES_PORT }}
+            AIRFLOW_POSTGRES_USER=${{ secrets.AIRFLOW_POSTGRES_USER }}
+            AIRFLOW_REDIS_PASSWORD=${{ secrets.AIRFLOW_REDIS_PASSWORD }}
+            AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_REGION=${{ secrets.AWS_REGION }}
+            AWS_S3_BUCKET_NAME=${{ secrets.AWS_S3_BUCKET_NAME }}
+            AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            FLOWER_BASIC_AUTH=${{ secrets.FLOWER_BASIC_AUTH }}
+            HF_TOKEN=${{ secrets.HF_TOKEN }}
+            POSTGRES_DATABASE=${{ secrets.POSTGRES_DATABASE }}
+            POSTGRES_HOST=${{ secrets.POSTGRES_HOST }}
+            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+            POSTGRES_PORT=${{ secrets.POSTGRES_PORT }}
+            POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+            QDRANT_COLLECTIONS=${{ secrets.QDRANT_COLLECTIONS }}
+            QDRANT_URL=${{ secrets.QDRANT_URL }}
+            ENVEOF
+            sed -i 's/^[[:space:]]*//' .env
+
+            chmod +x docker-setup.sh
+            ./docker-setup.sh
+
+            sudo docker compose -f docker-compose.yaml down --remove-orphans
+            sudo docker image prune -af
+
+            echo ${{ secrets.TOKEN_GITHUB }} | sudo docker login ${{ env.IMAGE_REGISTRY }} -u ${{ github.actor }} --password-stdin
+
+            sudo docker pull ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_NAME }}:latest
+            sudo docker tag ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ env.IMAGE_NAME }}:latest retail-chat-agent-etl:latest
+
+            sudo docker compose -f docker-compose.yaml up airflow-init --abort-on-container-exit
+            sudo docker compose -f docker-compose.yaml up -d
+
+            echo "Waiting for services to become healthy..."
+            sleep 30
+            sudo docker compose -f docker-compose.yaml ps
 
             echo "Deployment to production server completed successfully!"

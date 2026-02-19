@@ -14,6 +14,7 @@ from airflow.sdk import dag, task
     tags=["Sample", "Test", "ETL", "Sample"],
     dagrun_timeout=timedelta(minutes=10),
     is_paused_upon_creation=False,
+    max_active_runs=3,
 )
 def hello_etl():
     """Simple ETL DAG using TaskFlow API."""

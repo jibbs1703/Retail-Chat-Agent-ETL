@@ -34,25 +34,23 @@ fernet-key:
 ingestion-build:
 	docker build -f docker/Dockerfile -t retail-chat-agent-etl:latest .
 
- ingestion-init: ingestion-build
-	docker-compose -f docker-compose.yaml up airflow-init
+ingestion-init:
+	docker compose -f docker-compose.yaml up airflow-init --abort-on-container-exit
 
- ingestion-up:  ingestion-init
-	docker-compose -f docker-compose.yaml up -d
+ingestion-up: ingestion-init
+	docker compose -f docker-compose.yaml up -d
 
- ingestion-up-flower:  ingestion-init
-	docker-compose -f docker-compose.yaml --profile flower up -d
+ingestion-up-flower: ingestion-init
+	docker compose -f docker-compose.yaml --profile flower up -d
 
- ingestion-down:
-	docker-compose -f docker-compose.yaml down
+ingestion-down:
+	docker compose -f docker-compose.yaml down
 
- ingestion-restart:  ingestion-down  ingestion-up
+ingestion-restart: ingestion-down ingestion-up
 
- ingestion-clean:
-	docker-compose -f docker-compose.yaml down -v --remove-orphans
+ingestion-clean:
+	docker compose -f docker-compose.yaml down -v --remove-orphans
 	rm -rf ./logs/*
-	docker system prune -af --volumes
 	docker image prune -af
-	docker volume prune -af
 
- ingestion-reset:  ingestion-clean  ingestion-init  ingestion-up
+ingestion-reset: ingestion-clean ingestion-init ingestion-up
