@@ -49,13 +49,15 @@ class WebScraper:
         }
         async with self.semaphore:
             await asyncio.sleep(self.request_delay)
+            timeout = aiohttp.ClientTimeout(total=120, connect=30, sock_read=90)
+            timeout = aiohttp.ClientTimeout(total=120, connect=30, sock_read=90)
             try:
-                async with self.session.get(url, headers=headers, timeout=30) as response:
+                async with self.session.get(url, headers=headers, timeout=timeout) as response:
                     if response.status == 200:
                         return await response.text()
                     logger.warning("Non-200 status %s for %s", response.status, url)
                     return None
-            except aiohttp.ClientError as e:
+            except (aiohttp.ClientError, asyncio.TimeoutError) as e:
                 logger.error("Error fetching %s: %s", url, e)
                 return None
 
@@ -243,8 +245,10 @@ async def ingest_products_async(
             },
         )
         await upsert_points(collection_name="jibbs_product_text_embeddings", points=[point])
+
         upsert_product_data(product_data=product_data)
 
+        s3_image_urls = []
         for image_index, product_image_url in enumerate(product.get("Product Images", [])):
             product_bytesio = stream_image_to_bytesio(product_image_url)
             s3_image_url = upload_stream_to_s3(
@@ -253,6 +257,8 @@ async def ingest_products_async(
                 product_id=product_id,
                 image_index=image_index,
             )
+            if s3_image_url:
+                s3_image_urls.append(s3_image_url)
             product_image_embedding = embed_query(create_image_from_url(product_image_url))
             product_vector_id = generate_vector_id(product_title, "image", image_index)
             product_image_embedding_data = {
@@ -275,3 +281,6 @@ async def ingest_products_async(
             )
             await upsert_points(collection_name="jibbs_product_image_embeddings", points=[point])
             upsert_embedding_data(embedding_data=product_image_embedding_data)
+
+        product_data["product_s3_image_urls"] = s3_image_urls
+        upsert_product_data(product_data=product_data)
