@@ -25,7 +25,7 @@ settings = get_settings()
     start_date=datetime(2026, 1, 1),
     catchup=False,
     tags=["Products", "ETL", "Ingestion"],
-    dagrun_timeout=timedelta(hours=3),
+    dagrun_timeout=timedelta(hours=12),
     is_paused_upon_creation=False,
     max_active_runs=1,
 )
@@ -108,6 +108,21 @@ def products_etl():  # noqa: C901
         """Ingest shoes from scraper into vector and relational databases."""
         asyncio.run(ingest_products_async(category="shoes"))
 
+    @task(execution_timeout=timedelta(hours=2.5))
+    def ingest_swimwear():
+        """Ingest swimwear from scraper into vector and relational databases."""
+        asyncio.run(ingest_products_async(category="swimwear"))
+
+    @task(execution_timeout=timedelta(hours=2.5))
+    def ingest_dresses():
+        """Ingest dresses from scraper into vector and relational databases."""
+        asyncio.run(ingest_products_async(category="dresses"))
+
+    @task(execution_timeout=timedelta(hours=2.5))
+    def ingest_accessories():
+        """Ingest accessories from scraper into vector and relational databases."""
+        asyncio.run(ingest_products_async(category="accessories"))
+
     check_database = relational_database_check()
     check_vectorstore = vector_database_check()
     check_aws_s3 = aws_s3_check()
@@ -119,6 +134,9 @@ def products_etl():  # noqa: C901
 
     jackets = ingest_jackets()
     shoes = ingest_shoes()
+    swimwear = ingest_swimwear()
+    dresses = ingest_dresses()
+    accessories = ingest_accessories()
 
     product_table.set_upstream([check_database])
     embedding_table.set_upstream([check_database])
@@ -126,6 +144,9 @@ def products_etl():  # noqa: C901
     s3_bucket.set_upstream([check_aws_s3])
     jackets.set_upstream([product_table, embedding_table, qdrant_collections, s3_bucket])
     shoes.set_upstream(jackets)
+    swimwear.set_upstream(jackets)
+    dresses.set_upstream(jackets)
+    accessories.set_upstream(jackets)
 
 
 products_etl()

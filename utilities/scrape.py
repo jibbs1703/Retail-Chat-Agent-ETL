@@ -49,13 +49,15 @@ class WebScraper:
         }
         async with self.semaphore:
             await asyncio.sleep(self.request_delay)
+            timeout = aiohttp.ClientTimeout(total=120, connect=30, sock_read=90)
+            timeout = aiohttp.ClientTimeout(total=120, connect=30, sock_read=90)
             try:
-                async with self.session.get(url, headers=headers, timeout=30) as response:
+                async with self.session.get(url, headers=headers, timeout=timeout) as response:
                     if response.status == 200:
                         return await response.text()
                     logger.warning("Non-200 status %s for %s", response.status, url)
                     return None
-            except aiohttp.ClientError as e:
+            except (aiohttp.ClientError, asyncio.TimeoutError) as e:
                 logger.error("Error fetching %s: %s", url, e)
                 return None
 
@@ -210,11 +212,14 @@ async def scrape_stream(
 async def ingest_products_async(
     category: str,
 ):
-    async for product in scrape_stream(category=category, number_of_pages=5, limit_per_page=5):
+    async for product in scrape_stream(category=category, number_of_pages=10, limit_per_page=25):
         product_id = generate_product_id(product["Product Title"].split("-")[0].strip())
         product_title = product["Product Title"].split("-")[0].strip()
         product_description = product.get("Product Details", [])
-        product_caption = generate_product_caption(product_title, product_description)
+        product_category = product.get("Product Category", "")
+        product_caption = generate_product_caption(
+            product_title, product_description, product_category
+        )
         product_caption_embedding = embed_query(product_caption)
         product_data = {
             "product_id": product_id,
@@ -229,7 +234,7 @@ async def ingest_products_async(
             "promo_tagline": product.get("Promo Tagline", ""),
             "sizes_available": product.get("Size Options", []),
             "product_url": product.get("Product URL", ""),
-            "product_category": product.get("Product Category", ""),
+            "product_category": product_category,
             "product_inserted_at": datetime.now(UTC),
             "product_updated_at": datetime.now(UTC),
         }
@@ -243,8 +248,10 @@ async def ingest_products_async(
             },
         )
         await upsert_points(collection_name="jibbs_product_text_embeddings", points=[point])
+
         upsert_product_data(product_data=product_data)
 
+        s3_image_urls = []
         for image_index, product_image_url in enumerate(product.get("Product Images", [])):
             product_bytesio = stream_image_to_bytesio(product_image_url)
             s3_image_url = upload_stream_to_s3(
@@ -253,6 +260,8 @@ async def ingest_products_async(
                 product_id=product_id,
                 image_index=image_index,
             )
+            if s3_image_url:
+                s3_image_urls.append(s3_image_url)
             product_image_embedding = embed_query(create_image_from_url(product_image_url))
             product_vector_id = generate_vector_id(product_title, "image", image_index)
             product_image_embedding_data = {
@@ -275,3 +284,6 @@ async def ingest_products_async(
             )
             await upsert_points(collection_name="jibbs_product_image_embeddings", points=[point])
             upsert_embedding_data(embedding_data=product_image_embedding_data)
+
+        product_data["product_s3_image_urls"] = s3_image_urls
+        upsert_product_data(product_data=product_data)

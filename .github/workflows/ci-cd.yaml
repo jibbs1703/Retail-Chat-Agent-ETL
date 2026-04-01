@@ -5,9 +5,9 @@ on:
     branches:
       - "main"
       - "feature/**"
-  
+
   workflow_dispatch:
-  
+
   workflow_call:
 
 jobs:
@@ -15,7 +15,7 @@ jobs:
     name: Run Tests and Linting
     uses: ./.github/workflows/test-and-lint.yaml
     secrets: inherit
-  
+
   build-and-push:
     name: Build and Push Docker Images
     needs: tests
@@ -26,13 +26,13 @@ jobs:
       packages: write
     secrets: inherit
 
-  deploy-staging:
-    name: Deploy to Staging Server
-    needs: build-and-push
-    if: github.ref == 'refs/heads/main'
-    uses: ./.github/workflows/deploy-to-staging.yaml
-    secrets: inherit
-  
+  # deploy-staging:
+  #   name: Deploy to Staging Server
+  #   needs: build-and-push
+  #   if: github.ref == 'refs/heads/main'
+  #   uses: ./.github/workflows/deploy-to-staging.yaml
+  #   secrets: inherit
+
   # deploy-production:
   #   name: Deploy to Production Server
   #   needs: deploy-staging
