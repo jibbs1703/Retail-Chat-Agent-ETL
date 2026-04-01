@@ -144,9 +144,9 @@ def products_etl():  # noqa: C901
     s3_bucket.set_upstream([check_aws_s3])
     jackets.set_upstream([product_table, embedding_table, qdrant_collections, s3_bucket])
     shoes.set_upstream(jackets)
-    swimwear.set_upstream(jackets)
-    dresses.set_upstream(jackets)
-    accessories.set_upstream(jackets)
+    swimwear.set_upstream(shoes)
+    dresses.set_upstream(swimwear)
+    accessories.set_upstream(dresses)
 
 
 products_etl()
