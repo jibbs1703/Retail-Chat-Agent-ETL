@@ -37,15 +37,17 @@ def generate_vector_id(product_title: str, embedding_type: str, index: int | Non
 def generate_product_caption(
     product_title: str,
     product_description: list[str],
+    product_category: str,
 ) -> str:
     """
     Generate a product caption using the product title and description.
 
     Args:
         product_title (str): Title of the product.
-        product_description (str): Description of the product.
+        product_description (list[str]): Description of the product.
+        product_category (str): Category of the product.
 
     Returns:
         str: Generated product caption.
     """
-    return f"{product_title}. {' '.join(product_description)}"
+    return f"{product_category}. {product_title}. {' '.join(product_description)}"

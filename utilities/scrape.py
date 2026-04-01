@@ -212,11 +212,14 @@ async def scrape_stream(
 async def ingest_products_async(
     category: str,
 ):
-    async for product in scrape_stream(category=category, number_of_pages=5, limit_per_page=5):
+    async for product in scrape_stream(category=category, number_of_pages=10, limit_per_page=25):
         product_id = generate_product_id(product["Product Title"].split("-")[0].strip())
         product_title = product["Product Title"].split("-")[0].strip()
         product_description = product.get("Product Details", [])
-        product_caption = generate_product_caption(product_title, product_description)
+        product_category = product.get("Product Category", "")
+        product_caption = generate_product_caption(
+            product_title, product_description, product_category
+        )
         product_caption_embedding = embed_query(product_caption)
         product_data = {
             "product_id": product_id,
@@ -231,7 +234,7 @@ async def ingest_products_async(
             "promo_tagline": product.get("Promo Tagline", ""),
             "sizes_available": product.get("Size Options", []),
             "product_url": product.get("Product URL", ""),
-            "product_category": product.get("Product Category", ""),
+            "product_category": product_category,
             "product_inserted_at": datetime.now(UTC),
             "product_updated_at": datetime.now(UTC),
         }

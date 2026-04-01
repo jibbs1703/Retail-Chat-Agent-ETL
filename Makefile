@@ -14,16 +14,16 @@ lint:
 	python3 -m ruff check .
 
 clear-pycache:
-	find . -type d -name '__pycache__' -exec rm -rf {} +
+	@find . -type d -name '__pycache__' -exec rm -rf {} +
 
 clear-ruff: clear-pycache
-	find . -type d -name '.ruff_cache' -exec rm -rf {} +
+	@find . -type d -name '.ruff_cache' -exec rm -rf {} +
 
 clear-pytest: clear-ruff
-	find . -type d -name '.pytest_cache' -exec rm -rf {} +
+	@find . -type d -name '.pytest_cache' -exec rm -rf {} +
 
 clear: clear-pytest
-	clear
+	@clear
 
 secret-key:
 	python -c "import secrets; print(secrets.token_hex(32))"
